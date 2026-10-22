@@ -33,6 +33,7 @@
       "lib/**",
       "renderer/**",
       "assets/**",
+      "!assets/logo-lg.png",
       "launcher-config.json",
       "package.json"
     ],
