@@ -41,7 +41,7 @@ async function mockDesktop(page) {
     };
     window.__mockDesktop = state;
     window.legacy = {
-      async bootstrap() { return { settings: { ...state.settings }, version: '0.1.0', platform: 'win32' }; },
+      async bootstrap() { return { settings: { ...state.settings }, version: '0.1.1', platform: 'win32' }; },
       async inspectGame(gamePath) { return { valid: gamePath === validPath, message: gamePath === validPath ? 'GTA San Andreas y SA-MP encontrados.' : 'Selecciona una carpeta con gta_sa.exe y samp.exe.' }; },
       async saveSettings(settings) {
         if (/\s/.test(settings.nickname)) throw new Error('El nombre no puede contener espacios.');

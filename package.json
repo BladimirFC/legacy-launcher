@@ -1,12 +1,14 @@
 {
   "name": "legacy-launcher",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Launcher de escritorio para el servidor Legacy de SA-MP",
   "private": true,
   "main": "main.cjs",
   "author": "Legacy",
   "license": "UNLICENSED",
-  "engines": { "node": ">=22.12.0" },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "start": "electron .",
     "test": "node --test test/*.test.cjs",
@@ -22,16 +24,40 @@
     "productName": "Legacy Launcher",
     "asar": true,
     "publish": [],
-    "directories": {"output": "release"},
-    "files": ["main.cjs", "preload.cjs", "lib/**", "renderer/**", "assets/**", "launcher-config.json", "package.json"],
-    "extraFiles": [{ "from": "README.md", "to": "LEEME.txt" }],
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "lib/**",
+      "renderer/**",
+      "assets/**",
+      "launcher-config.json",
+      "package.json"
+    ],
+    "extraFiles": [
+      {
+        "from": "README.md",
+        "to": "LEEME.txt"
+      }
+    ],
     "win": {
-      "target": [{"target": "zip", "arch": ["x64"]}],
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "assets/icon.ico",
       "signExecutable": false,
       "artifactName": "Legacy-Launcher-${version}-Windows-${arch}.${ext}"
     },
     "nsis": {
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,

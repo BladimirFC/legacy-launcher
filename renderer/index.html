@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Legacy Launcher</title>
+  <link rel="icon" href="../assets/icon.ico" sizes="any">
   <link rel="stylesheet" href="styles.css">
   <script defer src="app.js"></script>
 </head>
@@ -21,16 +22,16 @@
     <symbol id="i-link" viewBox="0 0 24 24"><path d="M14 3h7v7m0-7L10 14m0-10H4v16h16v-6"/></symbol>
   </svg>
   <header class="titlebar">
-    <span class="titlebar-name"><span class="mini-mark">L</span> LEGACY LAUNCHER</span>
+    <span class="titlebar-name"><img class="mini-mark" src="../assets/icon.png" alt="Logo LG de Legacy" width="28" height="28"> LEGACY LAUNCHER</span>
     <div class="window-actions">
-      <span class="version" id="version">v0.1.0</span>
+      <span class="version" id="version">v0.1.1</span>
       <button id="minimize" class="window-button" aria-label="Minimizar">−</button>
       <button id="close" class="window-button close-window" aria-label="Cerrar">×</button>
     </div>
   </header>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand"><div class="brand-mark">L<span class="diagonal-arrow" aria-hidden="true"></span></div><div class="brand-name">LEGACY<span>SAN ANDREAS MULTIPLAYER</span></div></div>
+      <div class="brand"><img class="brand-mark" src="../assets/icon.png" alt="Logo LG de Legacy" width="56" height="56"><div class="brand-name">LEGACY<span>SAN ANDREAS MULTIPLAYER</span></div></div>
       <div class="nav-label">TU CIUDAD. TU HISTORIA.</div>
       <nav aria-label="Menú principal">
         <button class="nav-item active" data-view="home" aria-current="page"><svg><use href="#i-home"/></svg>Inicio<span class="nav-dot"></span></button>

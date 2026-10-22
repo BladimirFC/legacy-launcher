@@ -2,11 +2,13 @@
 
 Launcher de escritorio en español para un servidor de SA-MP. Interfaz propia de Legacy, perfil local, selección de la instalación de GTA, consulta real del servidor y conexión mediante el cliente SA-MP instalado.
 
+La versión 0.1.1 incorpora el monograma **LG**, con fondo negro y morado neón. El [logo en PNG](assets/logo-lg.png) se puede usar también para el servidor; los iconos de Windows y del launcher usan el mismo diseño.
+
 ![Vista previa de Legacy Launcher](docs/legacy-launcher.png)
 
 ## Usarlo en Windows
 
-Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.0-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
+Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.1-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
 
 1. Extrae **todo** el ZIP de Windows en una carpeta. No ejecutes el programa desde dentro del ZIP.
 2. Abre `Legacy Launcher.exe`.
@@ -64,7 +66,7 @@ Sustituye `serverHost` por la IP o el dominio **sin** `samp://`, `http://` ni pu
 npm run dist:win
 ```
 
-El resultado aparece en `release/Legacy-Launcher-0.1.0-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
+El resultado aparece en `release/Legacy-Launcher-0.1.1-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
 
 ```sh
 npm run dist:installer
