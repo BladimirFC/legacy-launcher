@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Legacy Launcher</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="m10 3-.6 2.3-2 .9-2.2-.7-2 3.5 1.6 1.6v2.8L3.2 15l2 3.5 2.2-.7 2 .9.6 2.3h4l.6-2.3 2-.9 2.2.7 2-3.5-1.6-1.6v-2.8l1.6-1.6-2-3.5-2.2.7-2-.9L14 3z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m3 10v-3a6 6 0 0 0-2-4"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7V4h6l3 3h9v13H3V7z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 10a8 8 0 1 0-2 8M20 4v6h-6"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M14 3h7v7m0-7L10 14m0-10H4v16h16v-6"/></symbol>
+  </svg>
+  <header class="titlebar">
+    <span class="titlebar-name"><span class="mini-mark">L</span> LEGACY LAUNCHER</span>
+    <div class="window-actions">
+      <span class="version" id="version">v0.1.0</span>
+      <button id="minimize" class="window-button" aria-label="Minimizar">−</button>
+      <button id="close" class="window-button close-window" aria-label="Cerrar">×</button>
+    </div>
+  </header>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">L<span class="diagonal-arrow" aria-hidden="true"></span></div><div class="brand-name">LEGACY<span>SAN ANDREAS MULTIPLAYER</span></div></div>
+      <div class="nav-label">TU CIUDAD. TU HISTORIA.</div>
+      <nav aria-label="Menú principal">
+        <button class="nav-item active" data-view="home" aria-current="page"><svg><use href="#i-home"/></svg>Inicio<span class="nav-dot"></span></button>
+        <button class="nav-item" data-view="settings"><svg><use href="#i-settings"/></svg>Ajustes</button>
+        <button class="nav-item" data-view="community"><svg><use href="#i-people"/></svg>Comunidad</button>
+      </nav>
+      <div class="sidebar-bottom"><div class="edition">EST. LEGACY <span>01 / PC</span></div><p>Las mejores historias<br>se viven dentro.</p><span class="sidebar-line"></span><span class="platform-label"><span class="tiny-dot"></span> SA-MP · WINDOWS</span></div>
+    </aside>
+    <main>
+      <div class="page-top"><div class="breadcrumb">LEGACY <span>/</span> <span id="page-label">INICIO</span></div><div class="top-caption">Un nuevo comienzo te espera <span class="diagonal-arrow" aria-hidden="true"></span></div></div>
+      <div id="notification" class="notification" role="status" aria-live="polite" hidden></div>
+      <section id="view-home" class="view">
+        <div class="hero">
+          <div class="hero-art" aria-hidden="true"></div><div class="hero-shade"></div>
+          <div class="hero-content"><div class="eyebrow"><span></span> BIENVENIDO A LEGACY</div><h1>LOS SANTOS.<br>TU PRÓXIMA<br><em>HISTORIA.</em></h1><p>Vuelve a las calles. Encuentra tu lugar.<br>Deja una huella que lleve tu nombre.</p><span class="hero-tag">SAN ANDREAS MULTIPLAYER <b class="diagonal-arrow" aria-hidden="true"></b></span></div>
+          <span class="hero-coordinate">LS / 34°03′ N</span>
+          <div class="server-strip"><div class="server-state"><span id="status-dot" class="status-dot"></span><div><span id="server-state">Sin configurar</span><span id="server-address">Añade la dirección de Legacy en Ajustes</span></div></div><div class="server-stats"><div><span>JUGADORES</span><strong id="players">— <small>/ —</small></strong></div><div><span>LATENCIA</span><strong id="ping">— <small>ms</small></strong></div><button class="icon-button" id="refresh-status" title="Actualizar estado" aria-label="Actualizar estado"><svg><use href="#i-refresh"/></svg></button></div></div>
+        </div>
+        <div class="launch-panel"><div class="player-field"><label for="nickname">TU NOMBRE EN LA CIUDAD</label><div class="input-wrap"><svg><use href="#i-user"/></svg><input id="nickname" type="text" maxlength="24" autocomplete="off" spellcheck="false" placeholder="Nombre_Apellido" aria-describedby="nickname-help"></div><span id="nickname-help">Se guardará en este equipo.</span></div><div class="launch-action"><button id="play" class="play-button"><span class="play-triangle"></span><span id="play-text">JUGAR A LEGACY</span><svg><use href="#i-arrow"/></svg></button><span id="play-hint">Configura tu juego para comenzar</span></div></div>
+        <div class="bottom-grid"><div class="installation-card"><div class="card-icon"><svg><use href="#i-folder"/></svg></div><div class="installation-info"><span class="card-kicker">TU INSTALACIÓN</span><strong id="game-state">Selecciona tu GTA San Andreas</strong><span id="game-detail">Necesitas GTA: SA y el cliente SA-MP.</span></div><button class="text-button" id="home-choose-folder" aria-label="Seleccionar carpeta de GTA San Andreas">Elegir carpeta <span class="diagonal-arrow" aria-hidden="true"></span></button></div><button class="community-card" data-view="community"><span class="card-kicker">NOS VEMOS EN LA CIUDAD</span><strong>Forma parte de Legacy <span class="diagonal-arrow" aria-hidden="true"></span></strong><span>Conecta con nuestra comunidad.</span></button></div>
+      </section>
+      <section id="view-settings" class="view" hidden>
+        <div class="section-heading"><div class="eyebrow"><span></span> A TU MANERA</div><h2>Prepara tu próxima historia.</h2><p>Deja todo listo para entrar a Legacy.</p></div>
+        <form id="settings-form" class="settings-form">
+          <div class="settings-section"><div class="form-section-title"><span>01</span><div><h3>Instalación del juego</h3><p>Elige la carpeta que contiene gta_sa.exe y samp.exe.</p></div></div><label for="game-path">CARPETA DE GTA SAN ANDREAS</label><div class="folder-input"><input id="game-path" readonly placeholder="Ninguna carpeta seleccionada"><button class="secondary-button" id="choose-folder" type="button"><svg><use href="#i-folder"/></svg>Explorar</button></div><p id="folder-result" class="field-help">El launcher utiliza tu instalación de GTA y SA-MP.</p></div>
+          <div class="settings-section"><div class="form-section-title"><span>02</span><div><h3>Servidor Legacy</h3><p>Introduce los datos de conexión del servidor.</p></div></div><div class="form-row"><div><label for="server-host">DIRECCIÓN IP O DOMINIO</label><input id="server-host" autocomplete="off" placeholder="Todavía sin configurar" maxlength="253"></div><div class="port-field"><label for="server-port">PUERTO</label><input id="server-port" type="number" min="1" max="65535" value="7777" required></div></div></div>
+          <div class="settings-section"><div class="form-section-title"><span>03</span><div><h3>Comunidad</h3><p>Añade la invitación oficial de Discord de Legacy.</p></div></div><label for="discord-url">INVITACIÓN DE DISCORD · OPCIONAL</label><input id="discord-url" type="url" autocomplete="off" placeholder="https://discord.gg/tu-invitacion"><p class="field-help">El enlace se abrirá en tu navegador.</p></div>
+          <div class="form-footer"><span>Tus preferencias se guardan en este equipo.</span><button id="save-settings" class="primary-button" type="submit">Guardar ajustes <svg><use href="#i-check"/></svg></button></div>
+        </form>
+      </section>
+      <section id="view-community" class="view" hidden>
+        <div class="community-hero"><div class="eyebrow"><span></span> MÁS ALLÁ DEL JUEGO</div><div class="community-symbol" aria-hidden="true"><svg><use href="#i-people"/></svg></div><h2>Una ciudad.<br><em>Muchas historias.</em></h2><p>Encuentra a otros jugadores, comparte tus momentos<br>y entérate de lo que pasa en Legacy.</p><button class="primary-button" id="open-discord">Entrar al Discord <svg><use href="#i-link"/></svg></button><p class="discord-help" id="discord-help">Añade la invitación de Legacy en Ajustes.</p><button class="text-button" data-view="settings">Configurar invitación <span class="diagonal-arrow" aria-hidden="true"></span></button></div>
+      </section>
+      <footer class="main-footer"><span>LEGACY <span class="footer-slash">/</span> CADA HISTORIA DEJA UNA HUELLA.</span><span id="footer-mode">LAUNCHER PARA PC</span></footer>
+    </main>
+  </div>
+</body>
+</html>

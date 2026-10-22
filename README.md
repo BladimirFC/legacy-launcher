@@ -1,0 +1,84 @@
+# Legacy Launcher
+
+Launcher de escritorio en español para un servidor de SA-MP. Interfaz propia de Legacy, perfil local, selección de la instalación de GTA, consulta real del servidor y conexión mediante el cliente SA-MP instalado.
+
+![Vista previa de Legacy Launcher](docs/legacy-launcher.png)
+
+## Usarlo en Windows
+
+Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.0-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
+
+1. Extrae **todo** el ZIP de Windows en una carpeta. No ejecutes el programa desde dentro del ZIP.
+2. Abre `Legacy Launcher.exe`.
+3. En **Ajustes**, selecciona la carpeta que contiene `gta_sa.exe` y `samp.exe`.
+4. Introduce la IP o el dominio del servidor y su puerto (por defecto, `7777`). Puedes añadir una invitación de Discord.
+5. Guarda los ajustes, vuelve a **Inicio**, escribe tu nombre y pulsa **Jugar a Legacy**.
+
+Requiere Windows 10/11 de 64 bits, una copia propia compatible de GTA San Andreas y el cliente SA-MP correspondiente al servidor. GTA y SA-MP no se incluyen ni se descargan desde este launcher. No necesitas Node.js para usar el paquete de Windows.
+
+**La dirección de Legacy todavía no se ha proporcionado.** Por eso el launcher empieza con el servidor sin configurar y sin estadísticas ficticias. Puedes introducir la IP desde Ajustes, sin recompilar.
+
+Este primer paquete no tiene firma de editor de Windows. La conexión real al juego debe comprobarse en un PC con Windows y con la dirección de Legacy configurada; las pruebas automatizadas se realizan con un servidor SA-MP de prueba local y un proceso simulado.
+
+## Funciones
+
+- Guarda el nombre del jugador y las preferencias en el perfil del usuario.
+- Comprueba que la carpeta elegida contiene los dos ejecutables requeridos.
+- Consulta el protocolo UDP de SA-MP para mostrar jugadores, capacidad y tiempo de respuesta.
+- Abre `samp.exe` con la dirección del servidor y guarda el nombre en la configuración de SA-MP de Windows.
+- Abre exclusivamente invitaciones HTTPS de Discord validadas.
+- Diferencia entre servidor sin configurar, sin respuesta y en línea. Si el servidor tiene las consultas UDP desactivadas, puede aparecer sin respuesta aunque permita entrar a jugar.
+
+## Desarrollo
+
+Requiere Node.js 22.12 o posterior y npm. Desde esta carpeta:
+
+```sh
+npm ci
+npm test
+npm start
+```
+
+La interfaz y las consultas también pueden comprobarse en Linux o macOS; la función de jugar exige Windows. Abrir `renderer/index.html` en un navegador permite ver el diseño, pero no acceder al juego ni a los ajustes del equipo.
+
+Las preferencias se guardan en `%APPDATA%\Legacy Launcher\settings.json` en Windows. Si el archivo está dañado, la aplicación muestra un aviso y permite guardar una configuración nueva.
+
+## Datos para distribuir a los jugadores
+
+Antes de compilar, edita `launcher-config.json`:
+
+```json
+{
+  "name": "Legacy",
+  "serverHost": "",
+  "serverPort": 7777,
+  "discordUrl": ""
+}
+```
+
+Sustituye `serverHost` por la IP o el dominio **sin** `samp://`, `http://` ni puerto. Introduce el puerto en `serverPort`. Puedes dejar `discordUrl` vacío hasta disponer de una invitación oficial. Los datos iniciales se aplican a nuevas instalaciones; los usuarios que ya tengan preferencias conservarán sus datos guardados.
+
+## Compilar para Windows
+
+```sh
+npm run dist:win
+```
+
+El resultado aparece en `release/Legacy-Launcher-0.1.0-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
+
+```sh
+npm run dist:installer
+```
+
+El flujo `.github/workflows/build-windows.yml` compila el ZIP y el instalador en Windows y los conserva como artefactos descargables. Puedes ejecutarlo desde **Actions → Compilar Legacy Launcher para Windows → Run workflow**; también se ejecuta al subir una etiqueta que empiece por `v`.
+
+## Estructura
+
+- `main.cjs` y `preload.cjs`: ventana de Electron y API limitada para la interfaz.
+- `lib/settings.cjs`: validación y guardado de preferencias.
+- `lib/samp.cjs`: consulta del servidor y apertura de SA-MP.
+- `renderer/`: interfaz en HTML, CSS y JavaScript, sin servicios externos.
+- `assets/`: ilustración original de la ciudad e iconos del launcher.
+- `test/backend.test.cjs`: pruebas de preferencias, consultas UDP y apertura del cliente.
+
+Esta versión no instala mods ni actualiza archivos del juego. Se pueden añadir cuando estén definidos los archivos y la fuente oficial de descarga de Legacy.
