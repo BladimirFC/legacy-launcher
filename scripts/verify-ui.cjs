@@ -11,6 +11,7 @@ try { playwright = require('playwright'); }
 catch { playwright = require(process.env.PLAYWRIGHT_MODULE || '/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'); }
 
 const project = path.resolve(__dirname, '..');
+const version = require('../package.json').version;
 const validPath = 'C:\\Games\\GTA San Andreas';
 
 async function serveProject() {
@@ -34,14 +35,14 @@ async function serveProject() {
 }
 
 async function mockDesktop(page) {
-  await page.addInitScript(({ validPath }) => {
+  await page.addInitScript(({ validPath, version }) => {
     const state = {
       settings: { nickname: '', gamePath: '', serverHost: '', serverPort: 7777, discordUrl: '' },
       saves: [], plays: 0, discords: 0, nextFolder: null,
     };
     window.__mockDesktop = state;
     window.legacy = {
-      async bootstrap() { return { settings: { ...state.settings }, version: '0.1.1', platform: 'win32' }; },
+      async bootstrap() { return { settings: { ...state.settings }, version, platform: 'win32' }; },
       async inspectGame(gamePath) { return { valid: gamePath === validPath, message: gamePath === validPath ? 'GTA San Andreas y SA-MP encontrados.' : 'Selecciona una carpeta con gta_sa.exe y samp.exe.' }; },
       async saveSettings(settings) {
         if (/\s/.test(settings.nickname)) throw new Error('El nombre no puede contener espacios.');
@@ -61,7 +62,7 @@ async function mockDesktop(page) {
       async openDiscord() { state.discords++; },
       minimize() {}, close() {},
     };
-  }, { validPath });
+  }, { validPath, version });
 }
 
 async function waitText(page, id, content) {
@@ -88,7 +89,14 @@ async function run() {
     console.log('PASS initial state: no invented server statistics');
 
     await fs.mkdir(path.join(project, 'artifacts'), { recursive: true });
-    await page.screenshot({ path: path.join(project, 'artifacts/legacy-home.png'), fullPage: true });
+    await page.screenshot({ path: path.join(project, 'artifacts/legacy-home.png'), fullPage: true, animations: 'disabled' });
+    await page.locator('.nav-item[data-view="settings"]').click();
+    await page.mouse.move(0, 0);
+    await page.screenshot({ path: path.join(project, 'artifacts/legacy-settings.png'), fullPage: true, animations: 'disabled' });
+    await page.locator('.nav-item[data-view="community"]').click();
+    await page.mouse.move(0, 0);
+    await page.screenshot({ path: path.join(project, 'artifacts/legacy-community.png'), fullPage: true, animations: 'disabled' });
+    await page.locator('.nav-item[data-view="home"]').click();
 
     for (const width of [1180, 1000]) {
       await page.setViewportSize({ width, height: 790 });
@@ -153,9 +161,11 @@ async function run() {
 
     for (const width of [1180, 1000]) {
       await page.setViewportSize({ width, height: 790 });
-      await page.locator('.nav-item[data-view="settings"]').click();
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
-      assert.equal(overflow, false, `Settings horizontal overflow at ${width}px`);
+      for (const view of ['settings', 'community']) {
+        await page.locator(`.nav-item[data-view="${view}"]`).click();
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+        assert.equal(overflow, false, `${view} horizontal overflow at ${width}px`);
+      }
     }
     assert.deepEqual(errors, []);
     console.log('PASS no renderer console errors or settings overflow');

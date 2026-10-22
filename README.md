@@ -2,13 +2,15 @@
 
 Launcher de escritorio en español para un servidor de SA-MP. Interfaz propia de Legacy, perfil local, selección de la instalación de GTA, consulta real del servidor y conexión mediante el cliente SA-MP instalado.
 
-La versión 0.1.1 incorpora el monograma **LG**, con fondo negro y morado neón. El [logo en PNG](assets/logo-lg.png) se puede usar también para el servidor; los iconos de Windows y del launcher usan el mismo diseño.
+La versión 0.1.2 aplica la temática **negro y morado neón a todo el launcher**: Inicio, Ajustes, Comunidad, fondos, tarjetas, botones, campos y mensajes. Incorpora el monograma **LG** y una ciudad nocturna en violeta. El [logo en PNG](assets/logo-lg.png) se puede usar también para el servidor; los iconos de Windows y del launcher usan el mismo diseño.
 
 ![Vista previa de Legacy Launcher](docs/legacy-launcher.png)
 
+Ver también: [Ajustes](docs/legacy-settings.png) · [Comunidad](docs/legacy-community.png).
+
 ## Usarlo en Windows
 
-Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.1-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
+Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.2-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
 
 1. Extrae **todo** el ZIP de Windows en una carpeta. No ejecutes el programa desde dentro del ZIP.
 2. Abre `Legacy Launcher.exe`.
@@ -20,7 +22,7 @@ Requiere Windows 10/11 de 64 bits, una copia propia compatible de GTA San Andrea
 
 **La dirección de Legacy todavía no se ha proporcionado.** Por eso el launcher empieza con el servidor sin configurar y sin estadísticas ficticias. Puedes introducir la IP desde Ajustes, sin recompilar.
 
-Este primer paquete no tiene firma de editor de Windows. La conexión real al juego debe comprobarse en un PC con Windows y con la dirección de Legacy configurada; las pruebas automatizadas se realizan con un servidor SA-MP de prueba local y un proceso simulado.
+El paquete no tiene firma de editor de Windows. La conexión real al juego debe comprobarse en un PC con Windows y con la dirección de Legacy configurada; las pruebas automatizadas se realizan con un servidor SA-MP de prueba local y un proceso simulado.
 
 ## Funciones
 
@@ -66,7 +68,7 @@ Sustituye `serverHost` por la IP o el dominio **sin** `samp://`, `http://` ni pu
 npm run dist:win
 ```
 
-El resultado aparece en `release/Legacy-Launcher-0.1.1-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
+El resultado aparece en `release/Legacy-Launcher-0.1.2-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
 
 ```sh
 npm run dist:installer
