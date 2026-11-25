@@ -9,6 +9,9 @@ contextBridge.exposeInMainWorld('legacy', Object.freeze({
   inspectGame: (gamePath) => ipcRenderer.invoke('legacy:inspect-game', gamePath),
   serverStatus: () => ipcRenderer.invoke('legacy:server-status'),
   play: () => ipcRenderer.invoke('legacy:play'),
+  onPlayProgress: (callback) => {
+    ipcRenderer.on('legacy:play-progress', (_event, progress) => callback(progress));
+  },
   openDiscord: () => ipcRenderer.invoke('legacy:open-discord'),
   minimize: () => ipcRenderer.invoke('legacy:minimize'),
   close: () => ipcRenderer.invoke('legacy:close'),

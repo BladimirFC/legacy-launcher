@@ -62,7 +62,14 @@ function registerHandlers() {
   trustedHandler('legacy:play', async () => {
     if (launching) throw new Error('SA-MP ya se está abriendo. Espera un momento.');
     launching = true;
-    try { return await launchGame(store.get()); }
+    try {
+      const contents = mainWindow.webContents;
+      return await launchGame(store.get(), {
+        onProgress: (progress) => {
+          if (!contents.isDestroyed()) contents.send('legacy:play-progress', progress);
+        },
+      });
+    }
     finally { launching = false; }
   });
   trustedHandler('legacy:open-discord', async () => {

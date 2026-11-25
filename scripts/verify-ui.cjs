@@ -40,6 +40,7 @@ async function mockDesktop(page) {
       settings: { nickname: '', gamePath: '', serverHost: '', serverPort: 7777, discordUrl: '' },
       saves: [], plays: 0, discords: 0, nextFolder: null,
     };
+    let reportPlayProgress;
     window.__mockDesktop = state;
     window.legacy = {
       async bootstrap() { return { settings: { ...state.settings }, version, platform: 'win32' }; },
@@ -58,7 +59,14 @@ async function mockDesktop(page) {
           ? { state: 'online', name: 'Servidor local de pruebas', players: 3, maxPlayers: 100, ping: 18 }
           : { state: 'unconfigured', message: 'Sin IP configurada.' };
       },
-      async play() { state.plays++; return { ok: true, message: 'SA-MP abierto para conectar a Legacy.' }; },
+      onPlayProgress(callback) { reportPlayProgress = callback; },
+      async play() {
+        state.plays++;
+        reportPlayProgress({ phase: 'download', percent: 42 });
+        await new Promise(resolve => { state.finishDownload = resolve; });
+        reportPlayProgress({ phase: 'launch' });
+        return { ok: true, message: 'SA-MP abierto para conectar a Legacy.' };
+      },
       async openDiscord() { state.discords++; },
       minimize() {}, close() {},
     };
@@ -147,10 +155,13 @@ async function run() {
     await page.locator('#nickname').press('Tab');
     await page.waitForFunction(() => window.__mockDesktop.settings.nickname === 'Legacy_Player');
     await page.locator('#play').click();
+    await waitText(page, 'play-text', 'DESCARGANDO CEF · 42%');
+    assert.equal(await page.locator('#play').isDisabled(), true);
+    await page.evaluate(() => { window.__mockDesktop.finishDownload(); });
     await waitText(page, 'notification', 'SA-MP abierto');
     assert.equal(await page.evaluate(() => window.__mockDesktop.plays), 1);
     assert.equal(await page.locator('#play').isEnabled(), true);
-    console.log('PASS saved nickname and Play action');
+    console.log('PASS saved nickname, CEF download progress and Play action');
 
     await page.locator('.nav-item[data-view="community"]').click();
     assert.equal(await page.locator('#view-community').isVisible(), true);

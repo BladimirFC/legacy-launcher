@@ -159,6 +159,17 @@ $('nickname').addEventListener('change', async () => {
   } catch (error) { notify(error.message); }
 });
 
+api?.onPlayProgress(({ phase, percent }) => {
+  const labels = {
+    check: 'COMPROBANDO CEF…',
+    download: `DESCARGANDO CEF · ${percent}%`,
+    extract: 'EXTRAYENDO CEF…',
+    install: 'INSTALANDO CEF…',
+    launch: 'ABRIENDO SA-MP…',
+  };
+  if (busy && Object.hasOwn(labels, phase)) $('play-text').textContent = labels[phase];
+});
+
 $('play').addEventListener('click', async () => {
   if (busy || !api) return;
   if (!settings.serverHost || !gameValid) {
@@ -174,7 +185,7 @@ $('play').addEventListener('click', async () => {
   }
   busy = true;
   $('play').disabled = true;
-  $('play-text').textContent = 'ABRIENDO SA-MP…';
+  $('play-text').textContent = 'COMPROBANDO CEF…';
   try {
     await savePreferences({ nickname: $('nickname').value.trim() });
     const result = await api.play();
