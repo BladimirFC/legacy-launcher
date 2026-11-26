@@ -180,3 +180,21 @@ test('SA-MP launch is rejected if a release appears during CEF preparation', asy
   }), /Actualiza/);
   assert.equal(manager.canPlay(), false);
 });
+
+test('recent confirmed update checks are reused but expired checks still block stale launchers', async () => {
+  const { updater } = fixture();
+  let time = 1000;
+  let checks = 0;
+  updater.checkForUpdates = async () => { checks++; updater.emit('update-not-available'); };
+  const manager = createUpdateManager(updater, { now: () => time });
+  await manager.check();
+  time += 5000;
+  await manager.requireCurrent({ maxAgeMs: 60000 });
+  await manager.requireCurrent({ maxAgeMs: 60000 });
+  assert.equal(checks, 1);
+  time += 60000;
+  updater.checkForUpdates = async () => { checks++; updater.emit('update-available', { version: '0.1.7' }); };
+  await assert.rejects(manager.requireCurrent({ maxAgeMs: 60000 }), /Actualiza/);
+  assert.equal(checks, 2);
+  assert.equal(manager.canPlay(), false);
+});
