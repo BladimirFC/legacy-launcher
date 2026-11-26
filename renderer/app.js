@@ -244,10 +244,10 @@ function renderUpdate(state) {
   const version = typeof state.version === 'string' ? state.version.slice(0, 64) : '';
   const percent = Number.isFinite(state.percent) ? Math.max(0, Math.min(100, state.percent)) : 0;
   const labels = {
-    available: ['Nueva versión ' + version, 'Actualización obligatoria para entrar a Legacy. Descarga la nueva versión.', 'Descargar actualización', 'downloadUpdate'],
+    available: ['Nueva versión ' + version, 'Preparando la descarga de la actualización obligatoria.', 'Descargar actualización', 'downloadUpdate'],
     downloading: ['Descargando versión ' + version, percent + '% completado. Debes actualizar antes de jugar.'],
-    ready: ['Actualización lista · ' + version, 'Instala y reinicia el launcher cuando no estés preparando el juego.', 'Instalar y reiniciar', 'installUpdate'],
-    installing: ['Instalando actualización…', 'El launcher se reiniciará.'],
+    ready: ['Actualización lista · ' + version, 'Aplica los cambios sin asistente de instalación. El launcher se abrirá de nuevo.', 'Actualizar y reiniciar', 'installUpdate'],
+    installing: ['Instalando actualización…', 'El launcher se reiniciará automáticamente.'],
     error: ['No se pudo actualizar', 'No se pudo verificar la versión. Reintenta para poder jugar.', 'Reintentar', 'checkUpdate'],
     'portable-update': ['Nueva versión ' + version, 'Actualiza mediante el instalador oficial para poder jugar.', 'Descargar instalador', 'openReleases'],
     portable: ['Instalación no compatible', 'Utiliza el instalador oficial para verificar la versión y jugar.', 'Ver descargas', 'openReleases'],

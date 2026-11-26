@@ -12,7 +12,7 @@ La versión 0.1.3 añadió la instalación automática de CEF 1.4.1. La versión
 
 ## Usarlo en Windows
 
-Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.6-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
+Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.7-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
 
 1. Extrae **todo** el ZIP de Windows en una carpeta. No ejecutes el programa desde dentro del ZIP.
 2. Abre `Legacy Launcher.exe`.
@@ -70,7 +70,7 @@ Sustituye `serverHost` por la IP o el dominio **sin** `samp://`, `http://` ni pu
 npm run dist:win
 ```
 
-El resultado aparece en `release/Legacy-Launcher-0.1.6-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
+El resultado aparece en `release/Legacy-Launcher-0.1.7-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
 
 ```sh
 npm run dist:installer
@@ -80,9 +80,9 @@ El flujo `.github/workflows/build-windows.yml` compila el ZIP y el instalador en
 
 ## Actualizaciones del launcher
 
-Instala una vez la versión 0.1.4 o posterior con el archivo Setup.exe de [Releases](https://github.com/BladimirFC/legacy-launcher/releases/latest). Al abrir el launcher se comprueba la última versión estable; si existe una nueva, puedes descargarla (con progreso y descarga diferencial cuando esté disponible) e instalarla con reinicio. Las preferencias de AppData se conservan. Desde 0.1.5 la comprobación se hace en el proceso principal al iniciar y antes de abrir SA-MP. En 0.1.6 se reutiliza una comprobación correcta de hace menos de 60 segundos para evitar consultas repetidas; si ha caducado, se vuelve a consultar antes de jugar. No se muestra un panel si la versión está vigente. Si hay una actualización o no se puede verificar la versión, el launcher bloquea Jugar hasta resolverlo. La versión ZIP comprueba la versión, pero si necesita actualizarse muestra un enlace al instalador; no aplica actualizaciones en su propia carpeta. El bloqueo es local al launcher, no una restricción del servidor SA-MP.
+Instala una vez la versión 0.1.4 o posterior con el archivo Setup.exe de [Releases](https://github.com/BladimirFC/legacy-launcher/releases/latest). Al abrir el launcher se comprueba la última versión estable; desde 0.1.7, si existe una nueva, se descarga automáticamente (con progreso y descarga diferencial cuando esté disponible). Tras confirmar Actualizar y reiniciar, se aplica en modo silencioso sin volver a mostrar el asistente de instalación y el launcher se abre de nuevo. La primera actualización desde 0.1.6 aún puede mostrar el asistente porque esa versión utiliza el actualizador anterior. Las preferencias de AppData se conservan. Desde 0.1.5 la comprobación se hace en el proceso principal al iniciar y antes de abrir SA-MP. En 0.1.6 se reutiliza una comprobación correcta de hace menos de 60 segundos para evitar consultas repetidas; si ha caducado, se vuelve a consultar antes de jugar. No se muestra un panel si la versión está vigente. Si hay una actualización o no se puede verificar la versión, el launcher bloquea Jugar hasta resolverlo. La versión ZIP comprueba la versión, pero si necesita actualizarse muestra un enlace al instalador; no aplica actualizaciones en su propia carpeta. El bloqueo es local al launcher, no una restricción del servidor SA-MP.
 
-La fuente de actualizaciones es el repositorio público oficial en HTTPS; electron-updater verifica el SHA-512 del instalador. Por ahora los ejecutables no tienen firma Authenticode y se requiere confirmación explícita antes de instalar; no existe una firma independiente del manifiesto ni garantía de rollback del instalador. Protege la cuenta de GitHub, las ramas y las publicaciones. No distribuyas tokens en la aplicación.
+La fuente de actualizaciones es el repositorio público oficial en HTTPS; electron-updater verifica el SHA-512 del instalador. Por ahora los ejecutables no tienen firma Authenticode y se requiere confirmación explícita antes de aplicar la actualización; no existe una firma independiente del manifiesto ni garantía de rollback del instalador. Protege la cuenta de GitHub, las ramas y las publicaciones. No distribuyas tokens en la aplicación.
 
 Para publicar una nueva versión, aumenta la versión en package.json y package-lock.json en el mismo commit, pasa las pruebas e integra en main. GitHub Actions crea primero una Release borrador con el instalador, su blockmap, ZIP y latest.yml, verifica el paquete durante el build y publica la Release completa. Una versión existente no se sobrescribe; si queda un borrador incompleto, revísalo antes de reintentar.
 

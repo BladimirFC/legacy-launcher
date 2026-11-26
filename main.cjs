@@ -46,9 +46,9 @@ function registerHandlers() {
       const result = await dialog.showMessageBox(mainWindow, {
         type: 'warning',
         title: 'Actualizar Legacy Launcher',
-        message: '¿Instalar la actualización y reiniciar el launcher?',
-        detail: 'La descarga se verificó con el manifiesto de GitHub. Este instalador todavía no dispone de firma Authenticode. Instala solo si confías en las publicaciones oficiales de Legacy.',
-        buttons: ['Instalar y reiniciar', 'Ahora no'],
+        message: '¿Aplicar la actualización y reiniciar el launcher?',
+        detail: 'La actualización se aplicará silenciosamente y conservará tus preferencias. La descarga se verificó con el manifiesto de GitHub, pero todavía no dispone de firma Authenticode. Continúa solo si confías en las publicaciones oficiales de Legacy.',
+        buttons: ['Actualizar y reiniciar', 'Ahora no'],
         defaultId: 1,
         cancelId: 1,
         noLink: true,
@@ -173,6 +173,7 @@ if (!app.requestSingleInstanceLock()) {
     updates = createUpdateManager(updater, {
       enabled: supported,
       canInstall: installed,
+      autoFetch: true,
       onState: (state) => {
         if (mainWindow && !mainWindow.webContents.isDestroyed()) mainWindow.webContents.send('legacy:update-state', state);
       },

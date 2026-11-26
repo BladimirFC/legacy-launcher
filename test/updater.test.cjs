@@ -13,7 +13,7 @@ function fixture() {
     updater.emit('update-downloaded', { version: '0.1.5' });
   };
   updater.quitAndInstall = (silent, restart) => {
-    assert.equal(silent, false);
+    assert.equal(silent, true);
     assert.equal(restart, true);
     installs++;
   };
@@ -197,4 +197,43 @@ test('recent confirmed update checks are reused but expired checks still block s
   await assert.rejects(manager.requireCurrent({ maxAgeMs: 60000 }), /Actualiza/);
   assert.equal(checks, 2);
   assert.equal(manager.canPlay(), false);
+});
+
+test('installed launcher downloads updates automatically but waits for explicit restart', async () => {
+  const { updater, installs } = fixture();
+  const states = [];
+  const manager = createUpdateManager(updater, { autoFetch: true, onState: state => states.push(state.phase) });
+  assert.equal((await manager.check()).phase, 'ready');
+  assert.deepEqual(states.filter((phase, index) => phase !== states[index - 1]), ['checking', 'available', 'downloading', 'ready']);
+  assert.equal(installs(), 0);
+  assert.equal(manager.canPlay(), false);
+  assert.equal(manager.install(), true);
+  assert.equal(installs(), 1);
+});
+
+test('automatic download does not run for portable builds or current versions', async () => {
+  const { updater } = fixture();
+  let downloads = 0;
+  updater.downloadUpdate = async () => { downloads++; };
+  const portable = createUpdateManager(updater, { autoFetch: true, canInstall: false });
+  assert.equal((await portable.check()).phase, 'portable-update');
+  const { updater: currentUpdater } = fixture();
+  currentUpdater.checkForUpdates = async () => currentUpdater.emit('update-not-available');
+  currentUpdater.downloadUpdate = async () => { downloads++; };
+  const current = createUpdateManager(currentUpdater, { autoFetch: true });
+  assert.equal((await current.check()).phase, 'current');
+  assert.equal(downloads, 0);
+});
+
+test('failed automatic download can be retried without starting installation', async () => {
+  const { updater, installs } = fixture();
+  const download = updater.downloadUpdate;
+  updater.downloadUpdate = async () => { throw new Error('network error'); };
+  const manager = createUpdateManager(updater, { autoFetch: true });
+  assert.equal((await manager.check()).phase, 'error');
+  assert.equal(manager.install(), false);
+  assert.equal(installs(), 0);
+  updater.downloadUpdate = download;
+  assert.equal((await manager.check()).phase, 'ready');
+  assert.equal(installs(), 0);
 });
