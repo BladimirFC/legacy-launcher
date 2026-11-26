@@ -90,6 +90,7 @@ function registerHandlers() {
       await updates.requireCurrent();
       const contents = mainWindow.webContents;
       return await launchGame(store.get(), {
+        beforeLaunch: () => updates.requireCurrent(),
         onProgress: (progress) => {
           if (!contents.isDestroyed()) contents.send('legacy:play-progress', progress);
         },

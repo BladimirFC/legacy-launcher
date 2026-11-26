@@ -109,9 +109,10 @@ test('game launch is blocked until a successful check explicitly confirms curren
   updater.checkForUpdates = async () => updater.emit('update-available', { version: '0.1.6' });
   await assert.rejects(manager.requireCurrent(), /Actualiza/);
   assert.equal(manager.canPlay(), false);
-  await manager.download();
+  updater.downloadUpdate = async () => updater.emit('update-downloaded', { version: '0.1.6' });
+  assert.equal((await manager.download()).phase, 'ready');
   assert.equal(manager.canPlay(), false);
-  manager.install();
+  assert.equal(manager.install(), true);
   assert.equal(manager.canPlay(), false);
 });
 
@@ -156,4 +157,26 @@ test('in-progress check cannot be bypassed by launching early', async () => {
   done();
   await pending;
   assert.equal(manager.canPlay(), true);
+});
+
+test('SA-MP launch is rejected if a release appears during CEF preparation', async (t) => {
+  const fs = require('node:fs/promises');
+  const os = require('node:os');
+  const path = require('node:path');
+  const { launchGame } = require('../lib/samp.cjs');
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'legacy-update-gate-'));
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  await Promise.all(['gta_sa.exe', 'samp.exe'].map(name => fs.writeFile(path.join(directory, name), '')));
+  const { updater, manager } = fixture();
+  updater.checkForUpdates = async () => updater.emit('update-not-available');
+  await manager.check();
+  await manager.requireCurrent();
+  await assert.rejects(launchGame({ gamePath: directory, nickname: 'Legacy_Player', serverHost: 'localhost', serverPort: 7777 }, {
+    platform: 'win32',
+    prepare: async () => { updater.checkForUpdates = async () => updater.emit('update-available', { version: '0.1.6' }); },
+    beforeLaunch: () => manager.requireCurrent(),
+    execute: () => assert.fail('Registry must not be modified'),
+    start: () => assert.fail('Game must not launch'),
+  }), /Actualiza/);
+  assert.equal(manager.canPlay(), false);
 });
