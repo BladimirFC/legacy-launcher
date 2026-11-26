@@ -87,3 +87,13 @@ test('ZIP and development builds cannot invoke the updater', async () => {
   assert.equal(manager.install(), false);
   assert.equal(RELEASE_URL, 'https://github.com/BladimirFC/legacy-launcher/releases/latest');
 });
+
+test('installer start errors return to a retryable state', async () => {
+  const { updater, manager } = fixture();
+  await manager.check();
+  await manager.download();
+  updater.quitAndInstall = () => updater.emit('error', new Error('installer could not start'));
+  assert.equal(manager.install(), false);
+  assert.equal(manager.getState().phase, 'error');
+  assert.equal((await manager.check()).phase, 'available');
+});

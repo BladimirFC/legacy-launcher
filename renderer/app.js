@@ -232,10 +232,14 @@ function renderUpdate(state) {
 }
 
 $('update-action').addEventListener('click', async () => {
-  if (!api || !updateAction || updateBusy || busy) return;
+  if (!api || !updateAction || updateBusy) return;
+  if (busy) { notify('Termina la operación actual antes de actualizar el launcher.'); return; }
   updateBusy = true;
   $('update-action').disabled = true;
-  try { await api[updateAction](); }
+  try {
+    if (updateAction === 'installUpdate') await saveQueue;
+    await api[updateAction]();
+  }
   catch (error) { notify(error.message); }
   finally { updateBusy = false; $('update-action').disabled = false; }
 });
