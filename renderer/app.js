@@ -4,6 +4,9 @@ const $ = (id) => document.getElementById(id);
 const api = window.legacy;
 let settings = { nickname: '', gamePath: '', serverHost: '', serverPort: 7777, discordUrl: '' };
 let gameValid = false;
+let cefReady = null;
+let inspectingGame = false;
+let inspectionId = 0;
 let busy = false;
 let querying = false;
 let queryAgain = false;
@@ -55,9 +58,17 @@ function fillForm() {
 }
 
 async function inspectGame() {
-  const result = await api.inspectGame(settings.gamePath);
+  const id = ++inspectionId;
+  inspectingGame = true;
+  cefReady = null;
+  syncPlayGate();
+  let result;
+  try { result = await api.inspectGame(settings.gamePath); }
+  finally { if (id === inspectionId) { inspectingGame = false; syncPlayGate(); } }
+  if (id !== inspectionId) return;
   gameValid = result.valid;
-  $('game-state').textContent = result.valid ? 'GTA San Andreas y SA-MP listos' : settings.gamePath ? 'Revisa la carpeta del juego' : 'Selecciona tu GTA San Andreas';
+  cefReady = typeof result.cefReady === 'boolean' ? result.cefReady : null;
+  $('game-state').textContent = result.valid ? (cefReady === false ? 'CEF requiere preparación' : 'GTA San Andreas y SA-MP listos') : settings.gamePath ? 'Revisa la carpeta del juego' : 'Selecciona tu GTA San Andreas';
   $('game-detail').textContent = settings.gamePath || 'Necesitas GTA: SA y el cliente SA-MP.';
   $('game-detail').title = settings.gamePath;
   $('folder-result').textContent = result.message;
@@ -70,7 +81,8 @@ function updatePlayHint() {
     $('play-hint').textContent = ['idle', 'checking'].includes(updatePhase) ? 'Comprobando versión del launcher…' : 'Actualiza el launcher antes de jugar.';
     return;
   }
-  $('play-hint').textContent = !settings.serverHost ? 'Añade la IP del servidor en Ajustes' : !gameValid ? 'Selecciona tu carpeta de GTA San Andreas' : !settings.nickname ? 'Elige tu nombre para comenzar' : 'Todo listo. La ciudad te espera.';
+  if (inspectingGame) { $('play-hint').textContent = 'Comprobando archivos del aporte…'; return; }
+  $('play-hint').textContent = !settings.serverHost ? 'Añade la IP del servidor en Ajustes' : !gameValid ? 'Selecciona tu carpeta de GTA San Andreas' : !settings.nickname ? 'Elige tu nombre para comenzar' : cefReady === false ? 'Se preparará CEF antes de entrar.' : 'Todo listo. La ciudad te espera.';
 }
 
 async function refreshStatus() {
@@ -179,7 +191,7 @@ api?.onPlayProgress(({ phase, percent }) => {
 });
 
 $('play').addEventListener('click', async () => {
-  if (busy || !api || updatePhase !== 'current') return;
+  if (busy || inspectingGame || !api || updatePhase !== 'current') return;
   if (!settings.serverHost || !gameValid) {
     showView('settings');
     notify(!settings.serverHost ? 'Introduce la IP y el puerto de Legacy para conectar.' : 'Selecciona la carpeta que contiene GTA San Andreas y SA-MP.');
@@ -199,6 +211,7 @@ $('play').addEventListener('click', async () => {
     await savePreferences({ nickname: $('nickname').value.trim() });
     const result = await api.play();
     notify(result.message, result.ok);
+    if (result.ok) { cefReady = true; $('game-state').textContent = 'GTA San Andreas y SA-MP listos'; }
     updatePlayHint();
   } catch (error) { notify(error.message); }
   finally { busy = false; playing = false; syncPlayGate(); }
@@ -209,9 +222,9 @@ $('open-discord').addEventListener('click', async () => {
 });
 
 function syncPlayGate() {
-  $('play').disabled = playing || updatePhase !== 'current';
+  $('play').disabled = playing || inspectingGame || updatePhase !== 'current';
   if (!playing) {
-    $('play-text').textContent = updatePhase === 'current' ? 'JUGAR A LEGACY'
+    $('play-text').textContent = updatePhase === 'current' ? (inspectingGame ? 'COMPROBANDO APORTE…' : 'JUGAR A LEGACY')
       : ['idle', 'checking'].includes(updatePhase) ? 'COMPROBANDO VERSIÓN…'
       : 'ACTUALIZACIÓN REQUERIDA';
   }

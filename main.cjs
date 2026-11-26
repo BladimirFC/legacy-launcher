@@ -7,6 +7,9 @@ const { pathToFileURL } = require('node:url');
 const { SettingsStore, validateSettings, validateDiscord } = require('./lib/settings.cjs');
 const { inspectGame, queryServer, launchGame } = require('./lib/samp.cjs');
 const { createUpdateManager, RELEASE_URL } = require('./lib/updater.cjs');
+const { createCefVerifier } = require('./lib/cef.cjs');
+const cefVerifier = createCefVerifier();
+const UPDATE_FRESHNESS_MS = 60_000;
 
 app.setName('Legacy Launcher');
 
@@ -66,7 +69,12 @@ function registerHandlers() {
   });
   trustedHandler('legacy:inspect-game', async (gamePath) => {
     if (typeof gamePath !== 'string' || gamePath.length > 4096) throw new Error('La ruta del juego no es válida.');
-    return inspectGame(gamePath);
+    const game = await inspectGame(gamePath);
+    if (!game.valid) return game;
+    try {
+      const cef = await cefVerifier.check(gamePath);
+      return { ...game, cefReady: cef.ready };
+    } catch { return { ...game, cefReady: false }; }
   });
   trustedHandler('legacy:server-status', async () => {
     const settings = store.get();
@@ -87,10 +95,11 @@ function registerHandlers() {
     if (launching || confirmingUpdate) throw new Error('Hay otra operación en curso.');
     launching = true;
     try {
-      await updates.requireCurrent();
+      await updates.requireCurrent({ maxAgeMs: UPDATE_FRESHNESS_MS });
       const contents = mainWindow.webContents;
       return await launchGame(store.get(), {
-        beforeLaunch: () => updates.requireCurrent(),
+        prepare: cefVerifier.prepare,
+        beforeLaunch: () => updates.requireCurrent({ maxAgeMs: UPDATE_FRESHNESS_MS }),
         onProgress: (progress) => {
           if (!contents.isDestroyed()) contents.send('legacy:play-progress', progress);
         },

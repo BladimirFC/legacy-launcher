@@ -6,7 +6,7 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
-const { ensureCef } = require('../lib/cef.cjs');
+const { ensureCef, createCefVerifier } = require('../lib/cef.cjs');
 const { launchGame } = require('../lib/samp.cjs');
 
 const archiveBytes = Buffer.from('archive fixture');
@@ -156,4 +156,36 @@ test('rejects an archive missing an actual required runtime file', async (t) => 
     },
   }), /Archivos ausentes: icudtl\.dat/);
   assert.equal(await fs.readFile(path.join(directory, 'cef.asi'), 'utf8'), 'old loader');
+});
+
+test('CEF startup verification is reused only while required files are unchanged', async (t) => {
+  const directory = await gameFolder(t);
+  await ensureCef(directory, { assets, extract: extractFixture, fetchAsset: async () => new Response(archiveBytes) });
+  let verifications = 0;
+  const verifier = createCefVerifier({ assets, verify: async () => { verifications++; return true; } });
+  assert.deepEqual(await verifier.check(directory), { ready: true, cached: false });
+  assert.deepEqual(await verifier.prepare(directory), { installed: false });
+  assert.equal(verifications, 1);
+  await fs.writeFile(path.join(directory, 'cef', 'client.dll'), 'changed');
+  assert.deepEqual(await verifier.check(directory), { ready: true, cached: false });
+  assert.equal(verifications, 2);
+  await fs.unlink(path.join(directory, 'cef', 'icudtl.dat'));
+  assert.deepEqual(await verifier.check(directory), { ready: false, cached: false });
+});
+
+test('real CEF preflight rejects corrupted files and repairs only when playing', async (t) => {
+  const directory = await gameFolder(t);
+  let downloads = 0;
+  const options = { assets, extract: extractFixture, fetchAsset: async () => { downloads++; return new Response(archiveBytes); } };
+  const verifier = createCefVerifier({ assets, install: (p, o) => ensureCef(p, { ...options, ...o }) });
+  assert.equal((await verifier.check(directory)).ready, false);
+  assert.equal(downloads, 0);
+  await verifier.prepare(directory);
+  assert.equal(downloads, 1);
+  assert.equal((await verifier.check(directory)).cached, true);
+  await fs.writeFile(path.join(directory, 'cef', 'libcef.dll'), 'changed');
+  assert.equal((await verifier.check(directory)).ready, false);
+  assert.equal(downloads, 1);
+  await verifier.prepare(directory);
+  assert.equal(downloads, 2);
 });
