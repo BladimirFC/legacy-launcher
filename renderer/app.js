@@ -12,6 +12,7 @@ let saveQueue = Promise.resolve();
 let updatePhase = 'idle';
 let updateAction = null;
 let updateBusy = false;
+let playing = false;
 
 function savePreferences(patch) {
   const task = saveQueue.then(async () => {
@@ -65,6 +66,10 @@ async function inspectGame() {
 }
 
 function updatePlayHint() {
+  if (updatePhase !== 'current') {
+    $('play-hint').textContent = ['idle', 'checking'].includes(updatePhase) ? 'Comprobando versión del launcher…' : 'Actualiza el launcher antes de jugar.';
+    return;
+  }
   $('play-hint').textContent = !settings.serverHost ? 'Añade la IP del servidor en Ajustes' : !gameValid ? 'Selecciona tu carpeta de GTA San Andreas' : !settings.nickname ? 'Elige tu nombre para comenzar' : 'Todo listo. La ciudad te espera.';
 }
 
@@ -174,7 +179,7 @@ api?.onPlayProgress(({ phase, percent }) => {
 });
 
 $('play').addEventListener('click', async () => {
-  if (busy || !api) return;
+  if (busy || !api || updatePhase !== 'current') return;
   if (!settings.serverHost || !gameValid) {
     showView('settings');
     notify(!settings.serverHost ? 'Introduce la IP y el puerto de Legacy para conectar.' : 'Selecciona la carpeta que contiene GTA San Andreas y SA-MP.');
@@ -187,36 +192,52 @@ $('play').addEventListener('click', async () => {
     return;
   }
   busy = true;
+  playing = true;
   $('play').disabled = true;
-  $('play-text').textContent = 'COMPROBANDO CEF…';
+  $('play-text').textContent = 'COMPROBANDO VERSIÓN…';
   try {
     await savePreferences({ nickname: $('nickname').value.trim() });
     const result = await api.play();
     notify(result.message, result.ok);
     updatePlayHint();
   } catch (error) { notify(error.message); }
-  finally { busy = false; $('play').disabled = false; $('play-text').textContent = 'JUGAR A LEGACY'; }
+  finally { busy = false; playing = false; syncPlayGate(); }
 });
 
 $('open-discord').addEventListener('click', async () => {
   try { await api?.openDiscord(); } catch (error) { notify(error.message); }
 });
 
+function syncPlayGate() {
+  $('play').disabled = playing || updatePhase !== 'current';
+  if (!playing) {
+    $('play-text').textContent = updatePhase === 'current' ? 'JUGAR A LEGACY'
+      : ['idle', 'checking'].includes(updatePhase) ? 'COMPROBANDO VERSIÓN…'
+      : 'ACTUALIZACIÓN REQUERIDA';
+  }
+  updatePlayHint();
+}
+
 function renderUpdate(state) {
   if (!state || typeof state.phase !== 'string') return;
   updatePhase = state.phase;
+  syncPlayGate();
+  if (['idle', 'checking', 'current'].includes(updatePhase)) {
+    $('update-panel').hidden = true;
+    $('update-action').hidden = true;
+    updateAction = null;
+    return;
+  }
   const version = typeof state.version === 'string' ? state.version.slice(0, 64) : '';
   const percent = Number.isFinite(state.percent) ? Math.max(0, Math.min(100, state.percent)) : 0;
   const labels = {
-    idle: ['Actualizaciones del launcher', 'Comprueba si hay una nueva versión.', 'Buscar actualizaciones', 'checkUpdate'],
-    checking: ['Buscando actualizaciones…', 'Consultando las publicaciones oficiales de Legacy.'],
-    current: ['Launcher actualizado', 'Estás utilizando la última versión estable.', 'Buscar actualizaciones', 'checkUpdate'],
-    available: ['Nueva versión ' + version, 'Descarga la actualización oficial desde GitHub.', 'Descargar actualización', 'downloadUpdate'],
-    downloading: ['Descargando versión ' + version, percent + '% completado. Puedes seguir usando el launcher.'],
+    available: ['Nueva versión ' + version, 'Actualización obligatoria para entrar a Legacy. Descarga la nueva versión.', 'Descargar actualización', 'downloadUpdate'],
+    downloading: ['Descargando versión ' + version, percent + '% completado. Debes actualizar antes de jugar.'],
     ready: ['Actualización lista · ' + version, 'Instala y reinicia el launcher cuando no estés preparando el juego.', 'Instalar y reiniciar', 'installUpdate'],
     installing: ['Instalando actualización…', 'El launcher se reiniciará.'],
-    error: ['No se pudo actualizar', 'Revisa tu conexión o consulta las versiones oficiales. Puedes seguir jugando.', 'Reintentar', 'checkUpdate'],
-    portable: ['Versión sin instalación NSIS', 'Para recibir actualizaciones automáticas, utiliza el instalador oficial.', 'Ver descargas', 'openReleases'],
+    error: ['No se pudo actualizar', 'No se pudo verificar la versión. Reintenta para poder jugar.', 'Reintentar', 'checkUpdate'],
+    'portable-update': ['Nueva versión ' + version, 'Actualiza mediante el instalador oficial para poder jugar.', 'Descargar instalador', 'openReleases'],
+    portable: ['Instalación no compatible', 'Utiliza el instalador oficial para verificar la versión y jugar.', 'Ver descargas', 'openReleases'],
   };
   const label = labels[updatePhase];
   if (!label) return;
@@ -247,6 +268,7 @@ $('update-action').addEventListener('click', async () => {
 api?.onUpdateState?.(renderUpdate);
 
 async function start() {
+  syncPlayGate();
   if (!api) {
     notify('Abre esta interfaz desde Legacy Launcher para configurar el juego y conectar al servidor.');
     $('play').disabled = true;
@@ -258,8 +280,8 @@ async function start() {
     settings = data.settings;
     $('version').textContent = `v${data.version}`;
     if (api.updateState) {
-      try { renderUpdate(await api.updateState()); void api.checkUpdate().catch(error => notify(error.message)); }
-      catch (error) { notify(error.message); }
+      try { renderUpdate(await api.updateState()); }
+      catch (error) { renderUpdate({ phase: 'error' }); notify(error.message); }
     }
     fillForm();
     await inspectGame();

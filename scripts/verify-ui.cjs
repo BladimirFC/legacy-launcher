@@ -61,13 +61,14 @@ async function mockDesktop(page) {
           : { state: 'unconfigured', message: 'Sin IP configurada.' };
       },
       onPlayProgress(callback) { reportPlayProgress = callback; },
-      onUpdateState(callback) { reportUpdateState = callback; },
-      async updateState() { return { phase: 'idle' }; },
-      async checkUpdate() { reportUpdateState({ phase: 'available', version: '0.1.5' }); },
+      onUpdateState(callback) { reportUpdateState = callback; state.emitUpdate = callback; },
+      async updateState() { return { phase: 'checking' }; },
+      async checkUpdate() { reportUpdateState({ phase: 'current' }); },
+      
       async downloadUpdate() {
-        reportUpdateState({ phase: 'downloading', version: '0.1.5', percent: 62 });
+        reportUpdateState({ phase: 'downloading', version: '0.1.6', percent: 62 });
         await new Promise(resolve => { state.finishUpdate = resolve; });
-        reportUpdateState({ phase: 'ready', version: '0.1.5', percent: 100 });
+        reportUpdateState({ phase: 'ready', version: '0.1.6', percent: 100 });
       },
       async installUpdate() { state.updateInstalls = (state.updateInstalls || 0) + 1; reportUpdateState({ phase: 'installing' }); },
       async openReleases() {},
@@ -104,9 +105,15 @@ async function run() {
     assert.equal(await page.locator('#view-home').isVisible(), true);
     assert.equal(await page.locator('#notification').isVisible(), false);
     assert.equal(await page.locator('#players').textContent(), '— / —');
+    assert.equal(await page.locator('#play').isDisabled(), true);
+    assert.equal(await page.locator('#update-panel').isVisible(), false);
+    await page.evaluate(() => window.__mockDesktop.emitUpdate({ phase: 'current' }));
     assert.equal(await page.locator('#play').isEnabled(), true);
-    console.log('PASS initial state: no invented server statistics');
-    await waitText(page, 'update-title', 'Nueva versión 0.1.5');
+    assert.equal(await page.locator('#update-panel').isVisible(), false);
+    console.log('PASS hidden current version and no premature launch');
+    await page.evaluate(() => window.__mockDesktop.emitUpdate({ phase: 'available', version: '0.1.6' }));
+    assert.equal(await page.locator('#play').isDisabled(), true);
+    await waitText(page, 'update-title', 'Nueva versión 0.1.6');
     await page.locator('#update-action').click();
     await waitText(page, 'update-detail', '62%');
     assert.equal(await page.locator('#update-progress').isVisible(), true);
@@ -115,7 +122,13 @@ async function run() {
     await page.locator('#update-action').click();
     await waitText(page, 'update-title', 'Instalando');
     assert.equal(await page.evaluate(() => window.__mockDesktop.updateInstalls), 1);
-    console.log('PASS updater progress and explicit install action');
+    assert.equal(await page.locator('#play').isDisabled(), true);
+    await page.evaluate(() => window.__mockDesktop.emitUpdate({ phase: 'error' }));
+    assert.equal(await page.locator('#play').isDisabled(), true);
+    await page.locator('#update-action').click();
+    await page.waitForFunction(() => !document.getElementById('play').disabled);
+    assert.equal(await page.locator('#update-panel').isVisible(), false);
+    console.log('PASS mandatory update, explicit install, and failed-check retry');
 
     await fs.mkdir(path.join(project, 'artifacts'), { recursive: true });
     await page.screenshot({ path: path.join(project, 'artifacts/legacy-home.png'), fullPage: true, animations: 'disabled' });
