@@ -33,7 +33,7 @@ async function makeRuntime(directory) {
   await fs.mkdir(path.join(runtime, 'locales'), { recursive: true });
   const names = [
     'client.dll', 'renderer.exe', 'libcef.dll', 'chrome_elf.dll',
-    'd3dcompiler_47.dll', 'libEGL.dll', 'libGLESv2.dll', 'icudtl.dat',
+    'd3dcompiler_47.dll', 'icudtl.dat',
     'resources.pak', 'chrome_100_percent.pak', 'chrome_200_percent.pak',
     'v8_context_snapshot.bin', 'locales/en-US.pak',
   ];
@@ -65,6 +65,10 @@ test('missing CEF is installed before reuse, with progress and unrelated mods pr
   assert.equal(events[2].percent, 100);
   assert.deepEqual(await fs.readFile(path.join(directory, 'cef.asi')), loaderBytes);
   assert.equal(await fs.readFile(path.join(directory, 'other.asi'), 'utf8'), 'existing');
+  // The official 1.4.1 archive omits these legacy graphics libraries.
+  for (const name of ['libEGL.dll', 'libGLESv2.dll']) {
+    await assert.rejects(fs.access(path.join(directory, 'cef', name)), { code: 'ENOENT' });
+  }
   assert.deepEqual((await fs.readdir(directory)).sort(), ['cef', 'cef.asi', 'other.asi']);
   assert.deepEqual(await ensureCef(directory, { assets, fetchAsset: () => assert.fail('No download needed') }), { installed: false });
 });
@@ -139,4 +143,17 @@ test('launch stops before touching SA-MP when CEF preparation fails', async (t) 
     execute: () => assert.fail('Registry must not be touched'),
     start: () => assert.fail('SA-MP must not open'),
   }), /CEF no disponible/);
+});
+
+test('rejects an archive missing an actual required runtime file', async (t) => {
+  const directory = await gameFolder(t);
+  await fs.writeFile(path.join(directory, 'cef.asi'), 'old loader');
+  await assert.rejects(ensureCef(directory, {
+    assets, fetchAsset: async () => new Response(archiveBytes),
+    extract: async (archive, unpacked) => {
+      await extractFixture(archive, unpacked);
+      await fs.unlink(path.join(unpacked, 'cef', 'icudtl.dat'));
+    },
+  }), /Archivos ausentes: icudtl\.dat/);
+  assert.equal(await fs.readFile(path.join(directory, 'cef.asi'), 'utf8'), 'old loader');
 });
