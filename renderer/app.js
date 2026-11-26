@@ -9,6 +9,9 @@ let querying = false;
 let queryAgain = false;
 let messageTimer;
 let saveQueue = Promise.resolve();
+let updatePhase = 'idle';
+let updateAction = null;
+let updateBusy = false;
 
 function savePreferences(patch) {
   const task = saveQueue.then(async () => {
@@ -199,6 +202,50 @@ $('open-discord').addEventListener('click', async () => {
   try { await api?.openDiscord(); } catch (error) { notify(error.message); }
 });
 
+function renderUpdate(state) {
+  if (!state || typeof state.phase !== 'string') return;
+  updatePhase = state.phase;
+  const version = typeof state.version === 'string' ? state.version.slice(0, 64) : '';
+  const percent = Number.isFinite(state.percent) ? Math.max(0, Math.min(100, state.percent)) : 0;
+  const labels = {
+    idle: ['Actualizaciones del launcher', 'Comprueba si hay una nueva versión.', 'Buscar actualizaciones', 'checkUpdate'],
+    checking: ['Buscando actualizaciones…', 'Consultando las publicaciones oficiales de Legacy.'],
+    current: ['Launcher actualizado', 'Estás utilizando la última versión estable.', 'Buscar actualizaciones', 'checkUpdate'],
+    available: ['Nueva versión ' + version, 'Descarga la actualización oficial desde GitHub.', 'Descargar actualización', 'downloadUpdate'],
+    downloading: ['Descargando versión ' + version, percent + '% completado. Puedes seguir usando el launcher.'],
+    ready: ['Actualización lista · ' + version, 'Instala y reinicia el launcher cuando no estés preparando el juego.', 'Instalar y reiniciar', 'installUpdate'],
+    installing: ['Instalando actualización…', 'El launcher se reiniciará.'],
+    error: ['No se pudo actualizar', 'Revisa tu conexión o consulta las versiones oficiales. Puedes seguir jugando.', 'Reintentar', 'checkUpdate'],
+    portable: ['Versión sin instalación NSIS', 'Para recibir actualizaciones automáticas, utiliza el instalador oficial.', 'Ver descargas', 'openReleases'],
+  };
+  const label = labels[updatePhase];
+  if (!label) return;
+  $('update-panel').hidden = false;
+  $('update-title').textContent = label[0];
+  $('update-detail').textContent = label[1];
+  $('update-progress').hidden = updatePhase !== 'downloading';
+  $('update-progress').value = percent;
+  updateAction = label[3] || null;
+  $('update-action').hidden = !updateAction;
+  $('update-action').textContent = label[2] || '';
+  $('update-action').disabled = updateBusy;
+}
+
+$('update-action').addEventListener('click', async () => {
+  if (!api || !updateAction || updateBusy) return;
+  if (busy) { notify('Termina la operación actual antes de actualizar el launcher.'); return; }
+  updateBusy = true;
+  $('update-action').disabled = true;
+  try {
+    if (updateAction === 'installUpdate') await saveQueue;
+    await api[updateAction]();
+  }
+  catch (error) { notify(error.message); }
+  finally { updateBusy = false; $('update-action').disabled = false; }
+});
+
+api?.onUpdateState?.(renderUpdate);
+
 async function start() {
   if (!api) {
     notify('Abre esta interfaz desde Legacy Launcher para configurar el juego y conectar al servidor.');
@@ -210,6 +257,10 @@ async function start() {
     const data = await api.bootstrap();
     settings = data.settings;
     $('version').textContent = `v${data.version}`;
+    if (api.updateState) {
+      try { renderUpdate(await api.updateState()); void api.checkUpdate().catch(error => notify(error.message)); }
+      catch (error) { notify(error.message); }
+    }
     fillForm();
     await inspectGame();
     await refreshStatus();

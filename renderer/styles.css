@@ -213,3 +213,13 @@ input::placeholder { color: #a77cbe; opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* Launcher updates share the existing Legacy visual language. */
+.update-panel { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 16px; padding: 14px 18px; border: 1px solid #9942cc; border-radius: 6px; background: #180825; }
+.update-panel[hidden], .update-panel [hidden] { display: none !important; }
+.update-copy { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+#update-title { color: #f1dfff; font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+#update-detail { color: #c69bdf; font-size: 10px; line-height: 1.4; }
+#update-progress { width: 100%; max-width: 420px; height: 7px; accent-color: #bd5cff; }
+.update-panel .secondary-button { flex-shrink: 0; }
+@media (max-width: 1000px) { .update-panel { flex-wrap: wrap; } }

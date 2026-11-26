@@ -24,7 +24,7 @@
   <header class="titlebar">
     <span class="titlebar-name"><img class="mini-mark" src="../assets/icon.png" alt="Logo LG de Legacy" width="28" height="28"> LEGACY LAUNCHER</span>
     <div class="window-actions">
-      <span class="version" id="version">v0.1.2</span>
+      <span class="version" id="version">v0.1.4</span>
       <button id="minimize" class="window-button" aria-label="Minimizar">−</button>
       <button id="close" class="window-button close-window" aria-label="Cerrar">×</button>
     </div>
@@ -43,6 +43,10 @@
     <main>
       <div class="page-top"><div class="breadcrumb">LEGACY <span>/</span> <span id="page-label">INICIO</span></div><div class="top-caption">Un nuevo comienzo te espera <span class="diagonal-arrow" aria-hidden="true"></span></div></div>
       <div id="notification" class="notification" role="status" aria-live="polite" hidden></div>
+      <section id="update-panel" class="update-panel" aria-label="Actualizaciones del launcher" hidden>
+        <div class="update-copy"><span class="card-kicker">ACTUALIZACIONES DEL LAUNCHER</span><strong id="update-title" role="status" aria-live="polite">Comprobando versión…</strong><span id="update-detail"></span><progress id="update-progress" max="100" value="0" aria-label="Progreso de descarga" hidden></progress></div>
+        <button class="secondary-button" id="update-action" type="button" hidden>Buscar actualizaciones</button>
+      </section>
       <section id="view-home" class="view">
         <div class="hero">
           <div class="hero-art" aria-hidden="true"></div><div class="hero-shade"></div>

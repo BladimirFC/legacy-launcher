@@ -6,6 +6,7 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { SettingsStore, validateSettings, validateDiscord } = require('./lib/settings.cjs');
 const { inspectGame, queryServer, launchGame } = require('./lib/samp.cjs');
+const { createUpdateManager, RELEASE_URL } = require('./lib/updater.cjs');
 
 app.setName('Legacy Launcher');
 
@@ -14,6 +15,8 @@ let store;
 let statusPromise;
 let statusDestination;
 let launching = false;
+let updates;
+let confirmingUpdate = false;
 const rendererPath = path.join(__dirname, 'renderer', 'index.html');
 const rendererUrl = pathToFileURL(rendererPath).href;
 
@@ -29,6 +32,27 @@ function trustedHandler(channel, handler) {
 function registerHandlers() {
   trustedHandler('legacy:bootstrap', () => ({ settings: store.get(), version: app.getVersion(), platform: process.platform, warning: store.warning }));
   trustedHandler('legacy:save-settings', (settings) => store.save(settings));
+  trustedHandler('legacy:update-state', () => updates.getState());
+  trustedHandler('legacy:update-check', () => updates.check());
+  trustedHandler('legacy:update-download', () => updates.download());
+  trustedHandler('legacy:update-releases', () => shell.openExternal(RELEASE_URL));
+  trustedHandler('legacy:update-install', async () => {
+    if (launching || confirmingUpdate || updates.getState().phase !== 'ready') return false;
+    confirmingUpdate = true;
+    try {
+      const result = await dialog.showMessageBox(mainWindow, {
+        type: 'warning',
+        title: 'Actualizar Legacy Launcher',
+        message: '¿Instalar la actualización y reiniciar el launcher?',
+        detail: 'La descarga se verificó con el manifiesto de GitHub. Este instalador todavía no dispone de firma Authenticode. Instala solo si confías en las publicaciones oficiales de Legacy.',
+        buttons: ['Instalar y reiniciar', 'Ahora no'],
+        defaultId: 1,
+        cancelId: 1,
+        noLink: true,
+      });
+      return result.response === 0 && !launching && updates.install();
+    } finally { confirmingUpdate = false; }
+  });
   trustedHandler('legacy:choose-game-folder', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
       title: 'Selecciona la carpeta de GTA San Andreas',
@@ -60,7 +84,7 @@ function registerHandlers() {
     return statusPromise;
   });
   trustedHandler('legacy:play', async () => {
-    if (launching) throw new Error('SA-MP ya se está abriendo. Espera un momento.');
+    if (launching || confirmingUpdate || updates.getState().phase === 'installing') throw new Error('Hay otra operación en curso.');
     launching = true;
     try {
       const contents = mainWindow.webContents;
@@ -130,6 +154,16 @@ if (!app.requestSingleInstanceLock()) {
     if (configWarning && !store.warning) store.warning = configWarning;
     session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
     session.defaultSession.setPermissionCheckHandler(() => false);
+    // Only NSIS-installed Windows builds can apply in-place launcher updates.
+    const installed = app.isPackaged && process.platform === 'win32' &&
+      await fs.access(path.join(path.dirname(process.execPath), '.legacy-installed')).then(() => true, () => false);
+    const updater = installed ? require('electron-updater').autoUpdater : null;
+    updates = createUpdateManager(updater, {
+      enabled: installed,
+      onState: (state) => {
+        if (mainWindow && !mainWindow.webContents.isDestroyed()) mainWindow.webContents.send('legacy:update-state', state);
+      },
+    });
     registerHandlers();
     createWindow();
     app.on('activate', () => { if (!mainWindow) createWindow(); });

@@ -8,11 +8,11 @@ La versión 0.1.2 aplica la temática **negro y morado neón a todo el launcher*
 
 Ver también: [Ajustes](docs/legacy-settings.png) · [Comunidad](docs/legacy-community.png).
 
-La versión 0.1.3 añade la instalación y actualización automática del cliente CEF 1.4.1.
+La versión 0.1.3 añadió la instalación automática de CEF 1.4.1. La versión 0.1.4 incorpora la actualización del propio launcher mediante GitHub Releases.
 
 ## Usarlo en Windows
 
-Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.3-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
+Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.4-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
 
 1. Extrae **todo** el ZIP de Windows en una carpeta. No ejecutes el programa desde dentro del ZIP.
 2. Abre `Legacy Launcher.exe`.
@@ -70,13 +70,21 @@ Sustituye `serverHost` por la IP o el dominio **sin** `samp://`, `http://` ni pu
 npm run dist:win
 ```
 
-El resultado aparece en `release/Legacy-Launcher-0.1.3-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
+El resultado aparece en `release/Legacy-Launcher-0.1.4-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
 
 ```sh
 npm run dist:installer
 ```
 
-El flujo `.github/workflows/build-windows.yml` compila el ZIP y el instalador en Windows y los conserva como artefactos descargables. Puedes ejecutarlo desde **Actions → Compilar Legacy Launcher para Windows → Run workflow**; también se ejecuta al integrar cambios en `main` o subir una etiqueta que empiece por `v`.
+El flujo `.github/workflows/build-windows.yml` compila el ZIP y el instalador en Windows y los conserva como artefactos descargables. Puedes ejecutarlo desde **Actions → Compilar Legacy Launcher para Windows → Run workflow**; también se ejecuta en pull requests y al integrar cambios en `main`. Solo las compilaciones exitosas de `main` publican una nueva versión estable en GitHub Releases.
+
+## Actualizaciones del launcher
+
+Instala una vez la versión 0.1.4 o posterior con el archivo Setup.exe de [Releases](https://github.com/BladimirFC/legacy-launcher/releases/latest). Al abrir el launcher se comprueba la última versión estable; si existe una nueva, puedes descargarla (con progreso y descarga diferencial cuando esté disponible) e instalarla con reinicio. Las preferencias de AppData se conservan. La versión ZIP no aplica actualizaciones en su propia carpeta: muestra un enlace al instalador.
+
+La fuente de actualizaciones es el repositorio público oficial en HTTPS; electron-updater verifica el SHA-512 del instalador. Por ahora los ejecutables no tienen firma Authenticode y se requiere confirmación explícita antes de instalar; no existe una firma independiente del manifiesto ni garantía de rollback del instalador. Protege la cuenta de GitHub, las ramas y las publicaciones. No distribuyas tokens en la aplicación.
+
+Para publicar una nueva versión, aumenta la versión en package.json y package-lock.json en el mismo commit, pasa las pruebas e integra en main. GitHub Actions crea primero una Release borrador con el instalador, su blockmap, ZIP y latest.yml, verifica el paquete durante el build y publica la Release completa. Una versión existente no se sobrescribe; si queda un borrador incompleto, revísalo antes de reintentar.
 
 ## Cliente CEF
 

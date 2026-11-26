@@ -41,6 +41,7 @@ async function mockDesktop(page) {
       saves: [], plays: 0, discords: 0, nextFolder: null,
     };
     let reportPlayProgress;
+    let reportUpdateState;
     window.__mockDesktop = state;
     window.legacy = {
       async bootstrap() { return { settings: { ...state.settings }, version, platform: 'win32' }; },
@@ -60,6 +61,16 @@ async function mockDesktop(page) {
           : { state: 'unconfigured', message: 'Sin IP configurada.' };
       },
       onPlayProgress(callback) { reportPlayProgress = callback; },
+      onUpdateState(callback) { reportUpdateState = callback; },
+      async updateState() { return { phase: 'idle' }; },
+      async checkUpdate() { reportUpdateState({ phase: 'available', version: '0.1.5' }); },
+      async downloadUpdate() {
+        reportUpdateState({ phase: 'downloading', version: '0.1.5', percent: 62 });
+        await new Promise(resolve => { state.finishUpdate = resolve; });
+        reportUpdateState({ phase: 'ready', version: '0.1.5', percent: 100 });
+      },
+      async installUpdate() { state.updateInstalls = (state.updateInstalls || 0) + 1; reportUpdateState({ phase: 'installing' }); },
+      async openReleases() {},
       async play() {
         state.plays++;
         reportPlayProgress({ phase: 'download', percent: 42 });
@@ -95,6 +106,16 @@ async function run() {
     assert.equal(await page.locator('#players').textContent(), '— / —');
     assert.equal(await page.locator('#play').isEnabled(), true);
     console.log('PASS initial state: no invented server statistics');
+    await waitText(page, 'update-title', 'Nueva versión 0.1.5');
+    await page.locator('#update-action').click();
+    await waitText(page, 'update-detail', '62%');
+    assert.equal(await page.locator('#update-progress').isVisible(), true);
+    await page.evaluate(() => window.__mockDesktop.finishUpdate());
+    await waitText(page, 'update-title', 'Actualización lista');
+    await page.locator('#update-action').click();
+    await waitText(page, 'update-title', 'Instalando');
+    assert.equal(await page.evaluate(() => window.__mockDesktop.updateInstalls), 1);
+    console.log('PASS updater progress and explicit install action');
 
     await fs.mkdir(path.join(project, 'artifacts'), { recursive: true });
     await page.screenshot({ path: path.join(project, 'artifacts/legacy-home.png'), fullPage: true, animations: 'disabled' });

@@ -12,6 +12,15 @@ contextBridge.exposeInMainWorld('legacy', Object.freeze({
   onPlayProgress: (callback) => {
     ipcRenderer.on('legacy:play-progress', (_event, progress) => callback(progress));
   },
+  updateState: () => ipcRenderer.invoke('legacy:update-state'),
+  checkUpdate: () => ipcRenderer.invoke('legacy:update-check'),
+  downloadUpdate: () => ipcRenderer.invoke('legacy:update-download'),
+  installUpdate: () => ipcRenderer.invoke('legacy:update-install'),
+  openReleases: () => ipcRenderer.invoke('legacy:update-releases'),
+  onUpdateState: (callback) => {
+    if (typeof callback !== 'function') throw new TypeError('Expected a callback');
+    ipcRenderer.on('legacy:update-state', (_event, state) => callback(state));
+  },
   openDiscord: () => ipcRenderer.invoke('legacy:open-discord'),
   minimize: () => ipcRenderer.invoke('legacy:minimize'),
   close: () => ipcRenderer.invoke('legacy:close'),
