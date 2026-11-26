@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, BrowserWindow, dialog, ipcMain, shell, session } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, shell, session, screen } = require('electron');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -139,14 +139,24 @@ function createSplash() {
 }
 
 function createWindow() {
+  // Keep the initial window inside the available desktop area, including on small displays.
+  const { width: workWidth, height: workHeight } = screen.getPrimaryDisplay().workAreaSize;
+  const width = Math.min(1120, Math.floor(workWidth * 0.94));
+  const height = Math.min(740, Math.floor(workHeight * 0.94));
   mainWindow = new BrowserWindow({
     title: 'Legacy Launcher',
     icon: path.join(__dirname, 'assets', 'icon.png'),
-    width: 1240,
-    height: 760,
-    minWidth: 980,
-    minHeight: 700,
-    frame: false,
+    width,
+    height,
+    minWidth: Math.min(820, width),
+    minHeight: Math.min(580, height),
+    center: true,
+    frame: true,
+    resizable: true,
+    maximizable: true,
+    minimizable: true,
+    fullscreen: false,
+    fullscreenable: false,
     backgroundColor: '#050208',
     show: false,
     autoHideMenuBar: true,
@@ -159,6 +169,7 @@ function createWindow() {
       devTools: !app.isPackaged,
     },
   });
+  mainWindow.removeMenu();
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   mainWindow.webContents.on('will-navigate', (event, url) => { if (url !== rendererUrl) event.preventDefault(); });
   mainWindow.webContents.on('will-attach-webview', (event) => event.preventDefault());

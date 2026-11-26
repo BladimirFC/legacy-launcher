@@ -148,7 +148,11 @@ async function run() {
       assert.ok(measure.doc <= measure.width, `Horizontal overflow at ${width}px: ${measure.doc}`);
       assert.ok(measure.play.right <= width && measure.play.left >= 0, `Play button outside viewport at ${width}px`);
     }
-    console.log('PASS home layout: 1000px and 1180px widths');
+    await page.setViewportSize({ width: 820, height: 580 });
+    const compact = await page.evaluate(() => ({ width: innerWidth, doc: document.documentElement.scrollWidth, play: document.getElementById('play').getBoundingClientRect().toJSON() }));
+    assert.ok(compact.doc <= compact.width, 'Compact window has horizontal overflow');
+    assert.ok(compact.play.right <= compact.width && compact.play.left >= 0, 'Play button outside compact window');
+    console.log('PASS home layout: 820px, 1000px and 1180px widths');
     await page.setViewportSize({ width: 1180, height: 790 });
 
     await page.locator('#play').click();

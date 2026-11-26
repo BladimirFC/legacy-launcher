@@ -145,8 +145,6 @@ async function chooseFolder() {
 }
 
 document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => showView(button.dataset.view)));
-$('minimize').addEventListener('click', () => api?.minimize());
-$('close').addEventListener('click', () => api?.close());
 $('refresh-status').addEventListener('click', refreshStatus);
 $('choose-folder').addEventListener('click', chooseFolder);
 $('home-choose-folder').addEventListener('click', chooseFolder);

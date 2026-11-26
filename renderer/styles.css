@@ -320,3 +320,37 @@ main { width: 100%; max-width: none; margin: 0; padding: 0 18px; display: flex; 
   #view-home .hero { min-height: 430px; }
   .game-selector { margin-top: 0; }
 }
+
+
+/* Native desktop window: Windows owns the caption and window controls. */
+.titlebar { height: 60px; padding-right: 16px; -webkit-app-region: no-drag; }
+.titlebar .window-actions { height: auto; }
+.app-shell, main { min-height: calc(100vh - 60px); }
+@media (max-width: 900px) {
+  .titlebar { gap: 9px; padding: 0 12px; }
+  .titlebar .brand-mark { width: 36px; height: 36px; }
+  .titlebar .brand-name { font-size: 19px; }
+  .titlebar .brand-name > span { font-size: 8px; letter-spacing: 2.2px; }
+  .titlebar .nav-item { padding: 0 9px; font-size: 11px; gap: 6px; }
+  .titlebar .version { margin: 0; }
+  .home-sidebar { width: 240px; padding-left: 14px; padding-right: 14px; }
+  .home-sidebar #players { font-size: 26px; }
+  #view-home .hero-content { left: 255px; }
+  #view-home .launch-action { width: 185px; }
+  #view-home .play-button { gap: 7px; font-size: 11px; }
+}
+@media (max-height: 680px) {
+  .titlebar { height: 54px; }
+  .app-shell, main { min-height: calc(100vh - 54px); }
+  .page-top { height: 29px; }
+  .home-sidebar { padding-top: 15px; padding-bottom: 14px; gap: 11px; }
+  .home-sidebar .server-strip { gap: 10px; }
+  .home-sidebar .server-state { padding: 8px 10px; }
+  .home-sidebar .community-link { min-height: 35px; }
+  .game-selector { gap: 7px; }
+  .game-selector .installation-card { padding: 10px; }
+  #view-home .hero { min-height: 350px; }
+  #view-home .hero-content { bottom: 20px; }
+  #view-home .launch-panel { min-height: 73px; padding: 9px 13px; }
+  .main-footer { height: 25px; }
+}
