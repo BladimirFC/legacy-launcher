@@ -131,11 +131,18 @@ test('Windows launch sets SA-MP nickname and starts installed samp.exe without a
   assert.equal(spec.options.shell, false);
   assert.equal(spec.file, path.join(directory, 'samp.exe'));
   assert.equal(spec.registry.args.at(-2), 'Legacy_Player');
+  let prepared = false;
   let registryCalled = false;
   let spawned = false;
   const result = await launchGame(settings, {
     platform: 'win32',
+    prepare: async (gamePath) => {
+      assert.equal(gamePath, directory);
+      await new Promise(setImmediate);
+      prepared = true;
+    },
     execute: async (file, args, options) => {
+      assert.equal(prepared, true);
       assert.equal(file, 'reg.exe');
       assert.deepEqual(args, spec.registry.args);
       assert.equal(options.shell, false);
@@ -156,5 +163,5 @@ test('Windows launch sets SA-MP nickname and starts installed samp.exe without a
   assert.equal(spawned, true);
   await assert.rejects(launchGame(settings, { platform: 'linux' }), /Windows/);
   await assert.rejects(launchGame({ ...settings, serverHost: '' }, { platform: 'win32' }));
-  await assert.rejects(launchGame(settings, { platform: 'win32', execute: async () => { throw new Error('denied'); } }), /permisos/);
+  await assert.rejects(launchGame(settings, { platform: 'win32', prepare: async () => {}, execute: async () => { throw new Error('denied'); } }), /permisos/);
 });

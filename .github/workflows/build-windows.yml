@@ -3,6 +3,7 @@ name: Compilar Legacy Launcher para Windows
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     tags: ['v*']
 
 permissions:
@@ -19,6 +20,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Verificar instalación del cliente oficial CEF
+        timeout-minutes: 15
+        run: |
+          node -e "const fs=require('node:fs/promises'); const os=require('node:os'); const path=require('node:path'); const assert=require('node:assert/strict'); const {ensureCef}=require('./lib/cef.cjs'); (async()=>{const dir=await fs.mkdtemp(path.join(os.tmpdir(),'legacy-cef-ci-'));try{assert.equal((await ensureCef(dir,{onProgress:e=>console.log(e)})).installed,true);assert.equal((await ensureCef(dir,{fetchAsset:()=>{throw Error('Unexpected second download')}})).installed,false)}finally{await fs.rm(dir,{recursive:true,force:true,maxRetries:3})}})().catch(e=>{console.error(e);process.exitCode=1})"
       - name: Crear ZIP e instalador
         run: npx electron-builder --win zip nsis --x64
         env:

@@ -8,9 +8,11 @@ La versión 0.1.2 aplica la temática **negro y morado neón a todo el launcher*
 
 Ver también: [Ajustes](docs/legacy-settings.png) · [Comunidad](docs/legacy-community.png).
 
+La versión 0.1.3 añade la instalación y actualización automática del cliente CEF 1.4.1.
+
 ## Usarlo en Windows
 
-Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.2-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
+Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.3-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
 
 1. Extrae **todo** el ZIP de Windows en una carpeta. No ejecutes el programa desde dentro del ZIP.
 2. Abre `Legacy Launcher.exe`.
@@ -68,13 +70,19 @@ Sustituye `serverHost` por la IP o el dominio **sin** `samp://`, `http://` ni pu
 npm run dist:win
 ```
 
-El resultado aparece en `release/Legacy-Launcher-0.1.2-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
+El resultado aparece en `release/Legacy-Launcher-0.1.3-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
 
 ```sh
 npm run dist:installer
 ```
 
-El flujo `.github/workflows/build-windows.yml` compila el ZIP y el instalador en Windows y los conserva como artefactos descargables. Puedes ejecutarlo desde **Actions → Compilar Legacy Launcher para Windows → Run workflow**; también se ejecuta al subir una etiqueta que empiece por `v`.
+El flujo `.github/workflows/build-windows.yml` compila el ZIP y el instalador en Windows y los conserva como artefactos descargables. Puedes ejecutarlo desde **Actions → Compilar Legacy Launcher para Windows → Run workflow**; también se ejecuta al integrar cambios en `main` o subir una etiqueta que empiece por `v`.
+
+## Cliente CEF
+
+Al pulsar **Jugar a Legacy**, el launcher comprueba el cliente CEF en la carpeta seleccionada. Si falta, está desactualizado o no se puede verificar, descarga la versión oficial 1.4.1 desde GitHub, comprueba el tamaño y SHA-256 del paquete y los binarios principales, e instala el cliente completo antes de abrir SA-MP. El paquete pesa unos 176 MB. Las instalaciones antiguas, incluso si están completas, se actualizan una vez. Los archivos sustituidos se conservan en una carpeta `.legacy-cef-respaldo-*` dentro de la carpeta del juego.
+
+Cierra GTA y SA-MP antes de actualizar. El launcher verifica los archivos principales y el marcador de instalación al volver a jugar; no vuelve a descargar un cliente válido. Los otros mods no se modifican. El aporte necesita un cargador ASI para que GTA pueda ejecutar `cef.asi`. Si la descarga falla, vuelve a pulsar **Jugar a Legacy** para reintentar.
 
 ## Estructura
 
@@ -84,5 +92,3 @@ El flujo `.github/workflows/build-windows.yml` compila el ZIP y el instalador en
 - `renderer/`: interfaz en HTML, CSS y JavaScript, sin servicios externos.
 - `assets/`: ilustración original de la ciudad e iconos del launcher.
 - `test/backend.test.cjs`: pruebas de preferencias, consultas UDP y apertura del cliente.
-
-Esta versión no instala mods ni actualiza archivos del juego. Se pueden añadir cuando estén definidos los archivos y la fuente oficial de descarga de Legacy.
