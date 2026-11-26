@@ -14,6 +14,7 @@ const UPDATE_FRESHNESS_MS = 60_000;
 app.setName('Legacy Launcher');
 
 let mainWindow;
+let splashWindow;
 let store;
 let statusPromise;
 let statusDestination;
@@ -116,12 +117,33 @@ function registerHandlers() {
   trustedHandler('legacy:close', () => mainWindow?.close());
 }
 
+function createSplash() {
+  splashWindow = new BrowserWindow({
+    width: 520,
+    height: 310,
+    frame: false,
+    resizable: false,
+    movable: false,
+    minimizable: false,
+    maximizable: false,
+    show: false,
+    skipTaskbar: true,
+    backgroundColor: '#130d1d',
+    webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, webSecurity: true, devTools: false },
+  });
+  splashWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  splashWindow.webContents.on('will-navigate', event => event.preventDefault());
+  splashWindow.once('ready-to-show', () => splashWindow?.showInactive());
+  splashWindow.on('closed', () => { splashWindow = null; });
+  void splashWindow.loadFile(path.join(__dirname, 'renderer', 'splash.html')).catch(() => splashWindow?.destroy());
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     title: 'Legacy Launcher',
     icon: path.join(__dirname, 'assets', 'icon.png'),
     width: 1240,
-    height: 820,
+    height: 760,
     minWidth: 980,
     minHeight: 700,
     frame: false,
@@ -140,7 +162,10 @@ function createWindow() {
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   mainWindow.webContents.on('will-navigate', (event, url) => { if (url !== rendererUrl) event.preventDefault(); });
   mainWindow.webContents.on('will-attach-webview', (event) => event.preventDefault());
-  mainWindow.once('ready-to-show', () => mainWindow.show());
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    splashWindow?.destroy();
+  });
   mainWindow.on('closed', () => { mainWindow = null; });
   mainWindow.loadFile(rendererPath);
 }
@@ -149,9 +174,11 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on('second-instance', () => {
-    if (mainWindow) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.focus(); }
+    if (mainWindow && mainWindow.isVisible()) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.focus(); }
+    else if (splashWindow) splashWindow.showInactive();
   });
   app.whenReady().then(async () => {
+    createSplash();
     let defaults = {};
     let configWarning = '';
     try {

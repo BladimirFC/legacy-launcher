@@ -22,24 +22,19 @@
     <symbol id="i-link" viewBox="0 0 24 24"><path d="M14 3h7v7m0-7L10 14m0-10H4v16h16v-6"/></symbol>
   </svg>
   <header class="titlebar">
-    <span class="titlebar-name"><img class="mini-mark" src="../assets/icon.png" alt="Logo LG de Legacy" width="28" height="28"> LEGACY LAUNCHER</span>
+    <div class="brand"><img class="brand-mark" src="../assets/icon.png" alt="Logo LG de Legacy"><div class="brand-name">LEGACY<span>ROLEPLAY</span></div></div>
+    <nav aria-label="Menú principal">
+        <button class="nav-item active" data-view="home" aria-current="page"><svg><use href="#i-home"/></svg>Inicio<span class="nav-dot"></span></button>
+        <button class="nav-item" data-view="settings"><svg><use href="#i-settings"/></svg>Ajustes</button>
+        <button class="nav-item" data-view="community"><svg><use href="#i-people"/></svg>Comunidad</button>
+      </nav>
     <div class="window-actions">
-      <span class="version" id="version">v0.1.6</span>
+      <span class="version" id="version">v0.1.8</span>
       <button id="minimize" class="window-button" aria-label="Minimizar">−</button>
       <button id="close" class="window-button close-window" aria-label="Cerrar">×</button>
     </div>
   </header>
   <div class="app-shell">
-    <aside class="sidebar">
-      <div class="brand"><img class="brand-mark" src="../assets/icon.png" alt="Logo LG de Legacy" width="56" height="56"><div class="brand-name">LEGACY<span>SAN ANDREAS MULTIPLAYER</span></div></div>
-      <div class="nav-label">TU CIUDAD. TU HISTORIA.</div>
-      <nav aria-label="Menú principal">
-        <button class="nav-item active" data-view="home" aria-current="page"><svg><use href="#i-home"/></svg>Inicio<span class="nav-dot"></span></button>
-        <button class="nav-item" data-view="settings"><svg><use href="#i-settings"/></svg>Ajustes</button>
-        <button class="nav-item" data-view="community"><svg><use href="#i-people"/></svg>Comunidad</button>
-      </nav>
-      <div class="sidebar-bottom"><div class="edition">EST. LEGACY <span>01 / PC</span></div><p>Las mejores historias<br>se viven dentro.</p><span class="sidebar-line"></span><span class="platform-label"><span class="tiny-dot"></span> SA-MP · WINDOWS</span></div>
-    </aside>
     <main>
       <div class="page-top"><div class="breadcrumb">LEGACY <span>/</span> <span id="page-label">INICIO</span></div><div class="top-caption">Un nuevo comienzo te espera <span class="diagonal-arrow" aria-hidden="true"></span></div></div>
       <div id="notification" class="notification" role="status" aria-live="polite" hidden></div>
@@ -50,12 +45,24 @@
       <section id="view-home" class="view">
         <div class="hero">
           <div class="hero-art" aria-hidden="true"></div><div class="hero-shade"></div>
-          <div class="hero-content"><div class="eyebrow"><span></span> BIENVENIDO A LEGACY</div><h1>LOS SANTOS.<br>TU PRÓXIMA<br><em>HISTORIA.</em></h1><p>Vuelve a las calles. Encuentra tu lugar.<br>Deja una huella que lleve tu nombre.</p><span class="hero-tag">SAN ANDREAS MULTIPLAYER <b class="diagonal-arrow" aria-hidden="true"></b></span></div>
-          <span class="hero-coordinate">LS / 34°03′ N</span>
-          <div class="server-strip"><div class="server-state"><span id="status-dot" class="status-dot"></span><div><span id="server-state">Sin configurar</span><span id="server-address">Añade la dirección de Legacy en Ajustes</span></div></div><div class="server-stats"><div><span>JUGADORES</span><strong id="players">— <small>/ —</small></strong></div><div><span>LATENCIA</span><strong id="ping">— <small>ms</small></strong></div><button class="icon-button" id="refresh-status" title="Actualizar estado" aria-label="Actualizar estado"><svg><use href="#i-refresh"/></svg></button></div></div>
+          <aside class="home-sidebar" aria-label="Servidor y juego">
+            <div class="eyebrow"><span></span> TU CIUDAD. TU HISTORIA.</div>
+            <div class="server-strip"><div class="server-state"><span id="status-dot" class="status-dot"></span><div><span id="server-state">Sin configurar</span><span id="server-address">Añade la dirección de Legacy en Ajustes</span></div></div><div class="server-stats"><div><span>JUGADORES</span><strong id="players">— <small>/ —</small></strong></div><div><span>LATENCIA</span><strong id="ping">— <small>ms</small></strong></div><button class="icon-button" id="refresh-status" title="Actualizar estado" aria-label="Actualizar estado"><svg><use href="#i-refresh"/></svg></button></div></div>
+            <button class="secondary-button community-link" data-view="community" type="button"><svg><use href="#i-people"/></svg> Comunidad Legacy <span class="diagonal-arrow" aria-hidden="true"></span></button>
+            <div class="game-selector">
+              <span class="card-kicker">TU JUEGO</span>
+              <div class="installation-card"><div class="card-icon"><svg><use href="#i-folder"/></svg></div><div class="installation-info"><span class="card-kicker">TU INSTALACIÓN</span><strong id="game-state">Selecciona tu GTA San Andreas</strong><span id="game-detail">Necesitas GTA: SA y el cliente SA-MP.</span></div><button class="text-button" id="home-choose-folder" aria-label="Seleccionar carpeta de GTA San Andreas">Elegir carpeta <span class="diagonal-arrow" aria-hidden="true"></span></button></div>
+              <div class="game-note"><svg><use href="#i-check"/></svg><span>Cliente SA-MP · CEF</span></div>
+            </div>
+          </aside>
+          <div class="hero-content"><div class="eyebrow"><span></span> LEGACY ROLEPLAY</div><h1>LOS SANTOS.<br><em>TU HISTORIA.</em></h1><p>Una ciudad. Infinitas posibilidades.</p></div>
+          <span class="hero-coordinate">SAN ANDREAS · MULTIPLAYER</span>
         </div>
-        <div class="launch-panel"><div class="player-field"><label for="nickname">TU NOMBRE EN LA CIUDAD</label><div class="input-wrap"><svg><use href="#i-user"/></svg><input id="nickname" type="text" maxlength="24" autocomplete="off" spellcheck="false" placeholder="Nombre_Apellido" aria-describedby="nickname-help"></div><span id="nickname-help">Se guardará en este equipo.</span></div><div class="launch-action"><button id="play" class="play-button" disabled><span class="play-triangle"></span><span id="play-text">JUGAR A LEGACY</span><svg><use href="#i-arrow"/></svg></button><span id="play-hint">Configura tu juego para comenzar</span></div></div>
-        <div class="bottom-grid"><div class="installation-card"><div class="card-icon"><svg><use href="#i-folder"/></svg></div><div class="installation-info"><span class="card-kicker">TU INSTALACIÓN</span><strong id="game-state">Selecciona tu GTA San Andreas</strong><span id="game-detail">Necesitas GTA: SA y el cliente SA-MP.</span></div><button class="text-button" id="home-choose-folder" aria-label="Seleccionar carpeta de GTA San Andreas">Elegir carpeta <span class="diagonal-arrow" aria-hidden="true"></span></button></div><button class="community-card" data-view="community"><span class="card-kicker">NOS VEMOS EN LA CIUDAD</span><strong>Forma parte de Legacy <span class="diagonal-arrow" aria-hidden="true"></span></strong><span>Conecta con nuestra comunidad.</span></button></div>
+        <div class="launch-panel">
+          <div class="player-field"><label for="nickname">TU NOMBRE EN LA CIUDAD</label><div class="input-wrap"><svg><use href="#i-user"/></svg><input id="nickname" type="text" maxlength="24" autocomplete="off" spellcheck="false" placeholder="Nombre_Apellido" aria-describedby="nickname-help"></div><span id="nickname-help">Se guardará en este equipo.</span></div>
+          <div class="launch-status"><span id="play-hint">Configura tu juego para comenzar</span><progress id="game-progress" max="100" aria-label="Progreso de preparación del juego" hidden></progress></div>
+          <div class="launch-action"><button id="play" class="play-button" disabled><span class="play-triangle"></span><span id="play-text">JUGAR A LEGACY</span><svg><use href="#i-arrow"/></svg></button></div>
+        </div>
       </section>
       <section id="view-settings" class="view" hidden>
         <div class="section-heading"><div class="eyebrow"><span></span> A TU MANERA</div><h2>Prepara tu próxima historia.</h2><p>Deja todo listo para entrar a Legacy.</p></div>

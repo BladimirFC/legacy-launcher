@@ -103,6 +103,8 @@ async function run() {
     await page.waitForFunction(() => document.getElementById('players')?.textContent === '— / —' && !document.getElementById('refresh-status')?.disabled);
     await waitText(page, 'server-state', 'Sin configurar');
     assert.equal(await page.locator('#view-home').isVisible(), true);
+    assert.equal(await page.locator('.home-sidebar #players').isVisible(), true);
+    assert.equal(await page.locator('#game-progress').isVisible(), false);
     assert.equal(await page.locator('#notification').isVisible(), false);
     assert.equal(await page.locator('#players').textContent(), '— / —');
     assert.equal(await page.locator('#play').isDisabled(), true);
@@ -190,9 +192,12 @@ async function run() {
     await page.waitForFunction(() => window.__mockDesktop.settings.nickname === 'Legacy_Player');
     await page.locator('#play').click();
     await waitText(page, 'play-text', 'DESCARGANDO CEF · 42%');
+    assert.equal(await page.locator('#game-progress').isVisible(), true);
+    assert.equal(await page.locator('#game-progress').evaluate(el => el.value), 42);
     assert.equal(await page.locator('#play').isDisabled(), true);
     await page.evaluate(() => { window.__mockDesktop.finishDownload(); });
     await waitText(page, 'notification', 'SA-MP abierto');
+    assert.equal(await page.locator('#game-progress').isVisible(), false);
     assert.equal(await page.evaluate(() => window.__mockDesktop.plays), 1);
     assert.equal(await page.locator('#play').isEnabled(), true);
     console.log('PASS saved nickname, CEF download progress and Play action');

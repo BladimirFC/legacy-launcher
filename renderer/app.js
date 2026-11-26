@@ -187,7 +187,13 @@ api?.onPlayProgress(({ phase, percent }) => {
     install: 'INSTALANDO CEF…',
     launch: 'ABRIENDO SA-MP…',
   };
-  if (busy && Object.hasOwn(labels, phase)) $('play-text').textContent = labels[phase];
+  if (!busy || !Object.hasOwn(labels, phase)) return;
+  $('play-text').textContent = labels[phase];
+  $('play-hint').textContent = labels[phase];
+  const progress = $('game-progress');
+  progress.hidden = phase === 'launch';
+  if (phase === 'download' && Number.isFinite(percent)) progress.value = Math.max(0, Math.min(100, percent));
+  else progress.removeAttribute('value');
 });
 
 $('play').addEventListener('click', async () => {
@@ -207,6 +213,8 @@ $('play').addEventListener('click', async () => {
   playing = true;
   $('play').disabled = true;
   $('play-text').textContent = 'COMPROBANDO VERSIÓN…';
+  $('game-progress').hidden = false;
+  $('game-progress').removeAttribute('value');
   try {
     await savePreferences({ nickname: $('nickname').value.trim() });
     const result = await api.play();
@@ -214,7 +222,7 @@ $('play').addEventListener('click', async () => {
     if (result.ok) { cefReady = true; $('game-state').textContent = 'GTA San Andreas y SA-MP listos'; }
     updatePlayHint();
   } catch (error) { notify(error.message); }
-  finally { busy = false; playing = false; syncPlayGate(); }
+  finally { busy = false; playing = false; $('game-progress').hidden = true; syncPlayGate(); }
 });
 
 $('open-discord').addEventListener('click', async () => {

@@ -10,9 +10,11 @@ Ver también: [Ajustes](docs/legacy-settings.png) · [Comunidad](docs/legacy-com
 
 La versión 0.1.3 añadió la instalación automática de CEF 1.4.1. La versión 0.1.4 incorpora la actualización del propio launcher mediante GitHub Releases.
 
+La versión 0.1.8 incorpora una pantalla de arranque propia, una interfaz de juego inmersiva con navegación superior, estado real del servidor y controles inferiores compactos.
+
 ## Usarlo en Windows
 
-Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.7-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
+Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.8-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
 
 1. Extrae **todo** el ZIP de Windows en una carpeta. No ejecutes el programa desde dentro del ZIP.
 2. Abre `Legacy Launcher.exe`.
@@ -70,7 +72,7 @@ Sustituye `serverHost` por la IP o el dominio **sin** `samp://`, `http://` ni pu
 npm run dist:win
 ```
 
-El resultado aparece en `release/Legacy-Launcher-0.1.7-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
+El resultado aparece en `release/Legacy-Launcher-0.1.8-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
 
 ```sh
 npm run dist:installer
