@@ -12,8 +12,8 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test test/*.test.cjs",
-    "dist:win": "electron-builder --win zip --x64",
-    "dist:installer": "electron-builder --win nsis --x64"
+    "dist:win": "electron-builder --win zip --x64 --publish never",
+    "dist:installer": "electron-builder --win nsis --x64 --publish never"
   },
   "devDependencies": {
     "electron": "42.11.18",
