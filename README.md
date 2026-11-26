@@ -104,3 +104,7 @@ Cierra GTA y SA-MP antes de actualizar. El launcher verifica los archivos princi
 - `renderer/`: interfaz en HTML, CSS y JavaScript, sin servicios externos.
 - `assets/`: ilustración original de la ciudad e iconos del launcher.
 - `test/backend.test.cjs`: pruebas de preferencias, consultas UDP y apertura del cliente.
+
+## Notas para testers
+
+Cada nueva versión debe incluir `release-notes/vX.Y.Z.md`, con una lista breve en español de cambios reales y visibles para los jugadores. El flujo de publicación exige ese archivo y lo usa como descripción de GitHub Releases; el tracker lo muestra automáticamente. Las notas pueden corregirse sin recompilar ni sustituir los instaladores publicados. No se deben incluir credenciales, detalles privados ni cambios que todavía no se hayan implementado.

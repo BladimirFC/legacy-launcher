@@ -1,0 +1,40 @@
+name: Actualizar notas de versiones publicadas
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'release-notes/**'
+      - '.github/workflows/sync-release-notes.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  notes:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    concurrency:
+      group: legacy-release-notes
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Sincronizar notas de publicaciones existentes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tags=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.draft == false and .prerelease == false) | .tag_name')
+          shopt -s nullglob
+          for notes in release-notes/v*.md; do
+            tag=$(basename "$notes" .md)
+            [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || continue
+            [[ -s "$notes" ]] || { echo "Empty release notes: $notes"; exit 1; }
+            if grep -Fxq "$tag" <<< "$tags"; then
+              gh release edit "$tag" --notes-file "$notes" --repo "$GITHUB_REPOSITORY"
+            fi
+          done
