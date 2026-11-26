@@ -17,7 +17,10 @@ const client = {
 const loader = {
   name: 'cef.asi', size: loaderBytes.length, sha256: createHash('sha256').update(loaderBytes).digest('hex'),
 };
-const assets = { client, loader };
+const core = Object.fromEntries(['client.dll', 'renderer.exe'].map(name => [
+  name, { size: Buffer.byteLength(name), sha256: createHash('sha256').update(name).digest('hex') },
+]));
+const assets = { client, loader, core };
 
 async function gameFolder(t) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'legacy aporte '));
@@ -51,7 +54,7 @@ test('missing CEF is installed before reuse, with progress and unrelated mods pr
     assets, extract: extractFixture,
     fetchAsset: async (url) => {
       assert.equal(new URL(url).hostname, 'github.com');
-      assert.ok(url.endsWith('/v1.3.0/client.zip'));
+      assert.ok(url.endsWith('/v1.4.1/client.zip'));
       return new Response(archiveBytes);
     },
     onProgress: (event) => events.push(event),
@@ -63,22 +66,37 @@ test('missing CEF is installed before reuse, with progress and unrelated mods pr
   assert.deepEqual(await fs.readFile(path.join(directory, 'cef.asi')), loaderBytes);
   assert.equal(await fs.readFile(path.join(directory, 'other.asi'), 'utf8'), 'existing');
   assert.deepEqual((await fs.readdir(directory)).sort(), ['cef', 'cef.asi', 'other.asi']);
-  assert.deepEqual(await ensureCef(directory, { fetchAsset: () => assert.fail('No download needed') }), { installed: false });
+  assert.deepEqual(await ensureCef(directory, { assets, fetchAsset: () => assert.fail('No download needed') }), { installed: false });
 });
 
-test('a complete runtime only downloads the missing ASI file', async (t) => {
+test('a complete but unverified old runtime receives the entire new package', async (t) => {
   const directory = await gameFolder(t);
   await makeRuntime(directory);
+  await fs.writeFile(path.join(directory, 'cef.asi'), 'old loader');
   await fs.writeFile(path.join(directory, 'cef', 'local-settings.json'), '{}');
-  await ensureCef(directory, {
-    assets, extract: () => assert.fail('No extraction needed'),
+  const result = await ensureCef(directory, {
+    assets, extract: extractFixture,
     fetchAsset: async (url) => {
-      assert.ok(url.endsWith('/cef.asi'));
-      return new Response(loaderBytes);
+      assert.ok(url.endsWith('/client.zip'));
+      return new Response(archiveBytes);
     },
   });
+  assert.equal(result.installed, true);
   assert.deepEqual(await fs.readFile(path.join(directory, 'cef.asi')), loaderBytes);
-  assert.equal(await fs.readFile(path.join(directory, 'cef', 'local-settings.json'), 'utf8'), '{}');
+  assert.equal(await fs.readFile(path.join(result.backupPath, 'cef', 'local-settings.json'), 'utf8'), '{}');
+});
+
+test('a damaged or mixed runtime is repaired even with a matching package marker', async (t) => {
+  const directory = await gameFolder(t);
+  const options = { assets, extract: extractFixture, fetchAsset: async () => new Response(archiveBytes) };
+  await ensureCef(directory, options);
+  for (const name of ['cef.asi', 'cef/client.dll', 'cef/renderer.exe', 'cef/libcef.dll']) {
+    await fs.writeFile(path.join(directory, name), 'incorrect version');
+    const result = await ensureCef(directory, options);
+    assert.equal(result.installed, true);
+    assert.equal(await fs.readFile(path.join(result.backupPath, name), 'utf8'), 'incorrect version');
+    assert.deepEqual(await ensureCef(directory, { assets, fetchAsset: () => assert.fail('No download needed') }), { installed: false });
+  }
 });
 
 test('repair backs up incomplete CEF, including the previous loader', async (t) => {

@@ -78,9 +78,9 @@ El flujo `.github/workflows/build-windows.yml` compila el ZIP y el instalador en
 
 ## Cliente CEF
 
-Al pulsar **Jugar a Legacy**, el launcher comprueba el cliente CEF en la carpeta seleccionada. Si falta, descarga la versión oficial 1.3.0 desde GitHub, verifica su SHA-256 y la instala antes de abrir SA-MP. El paquete completo pesa unos 154 MB. Si la instalación anterior está incompleta, los archivos sustituidos se conservan en una carpeta `.legacy-cef-respaldo-*` dentro de la carpeta del juego.
+Al pulsar **Jugar a Legacy**, el launcher comprueba el cliente CEF en la carpeta seleccionada. Si falta, está desactualizado o no se puede verificar, descarga la versión oficial 1.4.1 desde GitHub, comprueba el tamaño y SHA-256 del paquete y los binarios principales, e instala el cliente completo antes de abrir SA-MP. El paquete pesa unos 176 MB. Las instalaciones antiguas, incluso si están completas, se actualizan una vez. Los archivos sustituidos se conservan en una carpeta `.legacy-cef-respaldo-*` dentro de la carpeta del juego.
 
-El aporte necesita un cargador ASI para que GTA pueda ejecutar `cef.asi`. Si la descarga falla, vuelve a pulsar **Jugar a Legacy** para reintentar.
+Cierra GTA y SA-MP antes de actualizar. El launcher verifica los archivos principales y el marcador de instalación al volver a jugar; no vuelve a descargar un cliente válido. Los otros mods no se modifican. El aporte necesita un cargador ASI para que GTA pueda ejecutar `cef.asi`. Si la descarga falla, vuelve a pulsar **Jugar a Legacy** para reintentar.
 
 ## Estructura
 
