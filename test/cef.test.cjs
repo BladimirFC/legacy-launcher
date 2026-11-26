@@ -6,7 +6,7 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
-const { ensureCef } = require('../lib/cef.cjs');
+const { ensureCef, createCefVerifier } = require('../lib/cef.cjs');
 const { launchGame } = require('../lib/samp.cjs');
 
 const archiveBytes = Buffer.from('archive fixture');
@@ -156,4 +156,40 @@ test('rejects an archive missing an actual required runtime file', async (t) => 
     },
   }), /Archivos ausentes: icudtl\.dat/);
   assert.equal(await fs.readFile(path.join(directory, 'cef.asi'), 'utf8'), 'old loader');
+});
+
+test('startup CEF check is read-only and missing files trigger no downloads', async t => {
+  const directory = await gameFolder(t);
+  const verifier = createCefVerifier({ assets, install: () => assert.fail('Startup check must not install') });
+  assert.equal(await verifier.check(directory), false);
+  assert.deepEqual(await fs.readdir(directory), []);
+});
+
+test('successful CEF scans are reused only while all required metadata is unchanged', async t => {
+  const directory = await gameFolder(t);
+  const options = { assets, extract: extractFixture, fetchAsset: async () => new Response(archiveBytes) };
+  await ensureCef(directory, options);
+  let scans = 0;
+  const verifier = createCefVerifier({ assets, verify: async () => { scans++; return true; } });
+  assert.equal(await verifier.check(directory), true);
+  assert.deepEqual(await verifier.ensure(directory), { installed: false });
+  assert.equal(scans, 1);
+  await fs.writeFile(path.join(directory, 'cef', 'libcef.dll'), 'different bytes');
+  assert.equal(await verifier.check(directory), true);
+  assert.equal(scans, 2);
+  await fs.unlink(path.join(directory, 'cef', 'icudtl.dat'));
+  assert.equal(await verifier.check(directory), false);
+});
+
+test('cached real integrity check detects corruption and repairs only on Play', async t => {
+  const directory = await gameFolder(t);
+  const options = { assets, extract: extractFixture, fetchAsset: async () => new Response(archiveBytes) };
+  const verifier = createCefVerifier({ assets });
+  assert.equal(await verifier.check(directory), false);
+  assert.equal((await verifier.ensure(directory, options)).installed, true);
+  assert.equal(await verifier.check(directory), true);
+  await fs.writeFile(path.join(directory, 'cef', 'libcef.dll'), 'corrupt replacement');
+  assert.equal(await verifier.check(directory), false);
+  assert.equal((await verifier.ensure(directory, options)).installed, true);
+  assert.equal(await verifier.check(directory), true);
 });

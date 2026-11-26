@@ -12,7 +12,7 @@ La versión 0.1.3 añadió la instalación automática de CEF 1.4.1. La versión
 
 ## Usarlo en Windows
 
-Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.5-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
+Si descargas el instalador, ejecuta `Legacy-Launcher-0.1.6-Setup.exe` y sigue los pasos. Para usar la versión ZIP:
 
 1. Extrae **todo** el ZIP de Windows en una carpeta. No ejecutes el programa desde dentro del ZIP.
 2. Abre `Legacy Launcher.exe`.
@@ -70,7 +70,7 @@ Sustituye `serverHost` por la IP o el dominio **sin** `samp://`, `http://` ni pu
 npm run dist:win
 ```
 
-El resultado aparece en `release/Legacy-Launcher-0.1.5-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
+El resultado aparece en `release/Legacy-Launcher-0.1.6-Windows-x64.zip`. Incluye el ejecutable y los archivos de Electron; hay que distribuir el ZIP completo. Para generar un instalador desde Windows:
 
 ```sh
 npm run dist:installer
@@ -87,6 +87,8 @@ La fuente de actualizaciones es el repositorio público oficial en HTTPS; electr
 Para publicar una nueva versión, aumenta la versión en package.json y package-lock.json en el mismo commit, pasa las pruebas e integra en main. GitHub Actions crea primero una Release borrador con el instalador, su blockmap, ZIP y latest.yml, verifica el paquete durante el build y publica la Release completa. Una versión existente no se sobrescribe; si queda un borrador incompleto, revísalo antes de reintentar.
 
 ## Cliente CEF
+
+Desde 0.1.6 el launcher verifica CEF al abrirse y al seleccionar otra carpeta válida. Si falta algo, avisa sin iniciar descargas automáticamente. Al jugar reutiliza la verificación completa en memoria si los archivos requeridos conservan su tamaño, identidad y marcas temporales; si cambian, vuelve a verificar los hashes. Una reparación sigue usando el paquete oficial completo. Las comprobaciones de versión de launcher exitosas se reutilizan hasta 60 segundos, con revisión automática cada 45 segundos y antes de jugar si ha caducado. Esto evita repetir consultas de red y lecturas de DLL grandes durante un inicio normal. El registro `launcher-updates.log` permite diagnosticar las descargas diferenciales y las descargas completas.
 
 Al pulsar **Jugar a Legacy**, el launcher comprueba el cliente CEF en la carpeta seleccionada. Si falta, está desactualizado o no se puede verificar, descarga la versión oficial 1.4.1 desde GitHub, comprueba el tamaño y SHA-256 del paquete y los binarios principales, e instala el cliente completo antes de abrir SA-MP. El paquete pesa unos 176 MB. Las instalaciones antiguas, incluso si están completas, se actualizan una vez. Los archivos sustituidos se conservan en una carpeta `.legacy-cef-respaldo-*` dentro de la carpeta del juego.
 

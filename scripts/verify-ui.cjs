@@ -45,7 +45,7 @@ async function mockDesktop(page) {
     window.__mockDesktop = state;
     window.legacy = {
       async bootstrap() { return { settings: { ...state.settings }, version, platform: 'win32' }; },
-      async inspectGame(gamePath) { return { valid: gamePath === validPath, message: gamePath === validPath ? 'GTA San Andreas y SA-MP encontrados.' : 'Selecciona una carpeta con gta_sa.exe y samp.exe.' }; },
+      async inspectGame(gamePath) { return { valid: gamePath === validPath, cefReady: gamePath === validPath, message: gamePath === validPath ? 'GTA San Andreas y SA-MP encontrados.' : 'Selecciona una carpeta con gta_sa.exe y samp.exe.' }; },
       async saveSettings(settings) {
         if (/\s/.test(settings.nickname)) throw new Error('El nombre no puede contener espacios.');
         if (settings.serverHost.includes('/')) throw new Error('Introduce una IP o dominio, sin protocolo ni rutas.');
@@ -102,6 +102,7 @@ async function run() {
     await page.goto(url);
     await page.waitForFunction(() => document.getElementById('players')?.textContent === '— / —' && !document.getElementById('refresh-status')?.disabled);
     await waitText(page, 'server-state', 'Sin configurar');
+    await page.waitForFunction(() => document.getElementById('game-state')?.textContent === 'Selecciona tu GTA San Andreas');
     assert.equal(await page.locator('#view-home').isVisible(), true);
     assert.equal(await page.locator('#notification').isVisible(), false);
     assert.equal(await page.locator('#players').textContent(), '— / —');

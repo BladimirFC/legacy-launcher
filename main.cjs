@@ -7,6 +7,10 @@ const { pathToFileURL } = require('node:url');
 const { SettingsStore, validateSettings, validateDiscord } = require('./lib/settings.cjs');
 const { inspectGame, queryServer, launchGame } = require('./lib/samp.cjs');
 const { createUpdateManager, RELEASE_URL } = require('./lib/updater.cjs');
+const { createCefVerifier } = require('./lib/cef.cjs');
+const { createUpdateLogger } = require('./lib/update-log.cjs');
+const cefVerifier = createCefVerifier();
+const UPDATE_MAX_AGE_MS = 60_000;
 
 app.setName('Legacy Launcher');
 
@@ -66,7 +70,10 @@ function registerHandlers() {
   });
   trustedHandler('legacy:inspect-game', async (gamePath) => {
     if (typeof gamePath !== 'string' || gamePath.length > 4096) throw new Error('La ruta del juego no es válida.');
-    return inspectGame(gamePath);
+    const result = await inspectGame(gamePath);
+    if (!result.valid || gamePath !== store.get().gamePath) return result;
+    try { return { ...result, cefReady: await cefVerifier.check(gamePath) }; }
+    catch { return { ...result, cefReady: false }; }
   });
   trustedHandler('legacy:server-status', async () => {
     const settings = store.get();
@@ -87,10 +94,11 @@ function registerHandlers() {
     if (launching || confirmingUpdate) throw new Error('Hay otra operación en curso.');
     launching = true;
     try {
-      await updates.requireCurrent();
+      await updates.requireCurrent({ maxAgeMs: UPDATE_MAX_AGE_MS });
       const contents = mainWindow.webContents;
       return await launchGame(store.get(), {
-        beforeLaunch: () => updates.requireCurrent(),
+        prepare: (directory, options) => cefVerifier.ensure(directory, options),
+        beforeLaunch: () => updates.requireCurrent({ maxAgeMs: UPDATE_MAX_AGE_MS }),
         onProgress: (progress) => {
           if (!contents.isDestroyed()) contents.send('legacy:play-progress', progress);
         },
@@ -161,6 +169,7 @@ if (!app.requestSingleInstanceLock()) {
     const installed = supported &&
       await fs.access(path.join(path.dirname(process.execPath), '.legacy-installed')).then(() => true, () => false);
     const updater = supported ? require('electron-updater').autoUpdater : null;
+    if (updater) updater.logger = createUpdateLogger(path.join(app.getPath('userData'), 'launcher-updates.log'));
     updates = createUpdateManager(updater, {
       enabled: supported,
       canInstall: installed,
@@ -171,6 +180,10 @@ if (!app.requestSingleInstanceLock()) {
     registerHandlers();
     createWindow();
     void updates.check();
+    // Refresh the cached version quietly so most Play clicks need no network request.
+    const updateTimer = setInterval(() => { if (!launching && !confirmingUpdate) void updates.check(); }, 45_000);
+    updateTimer.unref();
+    app.once('before-quit', () => clearInterval(updateTimer));
     app.on('activate', () => { if (!mainWindow) createWindow(); });
   }).catch((error) => {
     dialog.showErrorBox('Legacy Launcher', `No se pudo iniciar el launcher: ${error.message}`);

@@ -13,6 +13,8 @@ let updatePhase = 'idle';
 let updateAction = null;
 let updateBusy = false;
 let playing = false;
+let gameChecking = true;
+let cefReady = null;
 
 function savePreferences(patch) {
   const task = saveQueue.then(async () => {
@@ -55,14 +57,30 @@ function fillForm() {
 }
 
 async function inspectGame() {
-  const result = await api.inspectGame(settings.gamePath);
-  gameValid = result.valid;
-  $('game-state').textContent = result.valid ? 'GTA San Andreas y SA-MP listos' : settings.gamePath ? 'Revisa la carpeta del juego' : 'Selecciona tu GTA San Andreas';
-  $('game-detail').textContent = settings.gamePath || 'Necesitas GTA: SA y el cliente SA-MP.';
-  $('game-detail').title = settings.gamePath;
-  $('folder-result').textContent = result.message;
-  $('folder-result').className = `field-help${settings.gamePath ? result.valid ? ' valid' : ' invalid' : ''}`;
-  updatePlayHint();
+  gameChecking = true;
+  cefReady = null;
+  syncPlayGate();
+  $('game-state').textContent = 'Comprobando instalación…';
+  try {
+    const result = await api.inspectGame(settings.gamePath);
+    gameValid = result.valid;
+    cefReady = result.valid ? result.cefReady === true : null;
+    $('game-state').textContent = result.valid
+      ? (cefReady ? 'GTA San Andreas y CEF listos' : 'CEF pendiente de instalación')
+      : settings.gamePath ? 'Revisa la carpeta del juego' : 'Selecciona tu GTA San Andreas';
+    $('game-detail').textContent = settings.gamePath || 'Necesitas GTA: SA y el cliente SA-MP.';
+    $('game-detail').title = settings.gamePath;
+    $('folder-result').textContent = result.valid && !cefReady
+      ? 'CEF necesita instalarse o repararse. Se preparará antes de entrar.' : result.message;
+    $('folder-result').className = `field-help${settings.gamePath ? result.valid ? ' valid' : ' invalid' : ''}`;
+  } catch (error) {
+    gameValid = false;
+    $('game-state').textContent = 'No se pudo comprobar la instalación';
+    throw error;
+  } finally {
+    gameChecking = false;
+    syncPlayGate();
+  }
 }
 
 function updatePlayHint() {
@@ -70,7 +88,8 @@ function updatePlayHint() {
     $('play-hint').textContent = ['idle', 'checking'].includes(updatePhase) ? 'Comprobando versión del launcher…' : 'Actualiza el launcher antes de jugar.';
     return;
   }
-  $('play-hint').textContent = !settings.serverHost ? 'Añade la IP del servidor en Ajustes' : !gameValid ? 'Selecciona tu carpeta de GTA San Andreas' : !settings.nickname ? 'Elige tu nombre para comenzar' : 'Todo listo. La ciudad te espera.';
+  if (gameChecking) { $('play-hint').textContent = 'Comprobando archivos del aporte…'; return; }
+  $('play-hint').textContent = !settings.serverHost ? 'Añade la IP del servidor en Ajustes' : !gameValid ? 'Selecciona tu carpeta de GTA San Andreas' : !settings.nickname ? 'Elige tu nombre para comenzar' : !cefReady ? 'CEF se preparará antes de entrar' : 'Todo listo. La ciudad te espera.';
 }
 
 async function refreshStatus() {
@@ -179,7 +198,7 @@ api?.onPlayProgress(({ phase, percent }) => {
 });
 
 $('play').addEventListener('click', async () => {
-  if (busy || !api || updatePhase !== 'current') return;
+  if (busy || !api || gameChecking || updatePhase !== 'current') return;
   if (!settings.serverHost || !gameValid) {
     showView('settings');
     notify(!settings.serverHost ? 'Introduce la IP y el puerto de Legacy para conectar.' : 'Selecciona la carpeta que contiene GTA San Andreas y SA-MP.');
@@ -198,6 +217,7 @@ $('play').addEventListener('click', async () => {
   try {
     await savePreferences({ nickname: $('nickname').value.trim() });
     const result = await api.play();
+    if (result.ok) { cefReady = true; $('game-state').textContent = 'GTA San Andreas y CEF listos'; }
     notify(result.message, result.ok);
     updatePlayHint();
   } catch (error) { notify(error.message); }
@@ -209,9 +229,9 @@ $('open-discord').addEventListener('click', async () => {
 });
 
 function syncPlayGate() {
-  $('play').disabled = playing || updatePhase !== 'current';
+  $('play').disabled = playing || gameChecking || updatePhase !== 'current';
   if (!playing) {
-    $('play-text').textContent = updatePhase === 'current' ? 'JUGAR A LEGACY'
+    $('play-text').textContent = updatePhase === 'current' ? (gameChecking ? 'COMPROBANDO APORTE…' : 'JUGAR A LEGACY')
       : ['idle', 'checking'].includes(updatePhase) ? 'COMPROBANDO VERSIÓN…'
       : 'ACTUALIZACIÓN REQUERIDA';
   }
