@@ -1,6 +1,6 @@
 {
   "name": "legacy-launcher",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Launcher de escritorio para el servidor Legacy de SA-MP",
   "private": true,
   "main": "main.cjs",
