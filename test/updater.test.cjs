@@ -80,7 +80,7 @@ test('parallel operations and unexpected download events cannot start an install
   assert.equal(manager.install(), false);
 });
 
-test('ZIP and development builds cannot invoke the updater', async () => {
+test('unsupported development builds cannot invoke the updater', async () => {
   const manager = createUpdateManager(null, { enabled: false });
   assert.equal((await manager.check()).phase, 'portable');
   assert.equal((await manager.download()).phase, 'portable');
@@ -96,4 +96,64 @@ test('installer start errors return to a retryable state', async () => {
   assert.equal(manager.install(), false);
   assert.equal(manager.getState().phase, 'error');
   assert.equal((await manager.check()).phase, 'available');
+});
+
+test('game launch is blocked until a successful check explicitly confirms current version', async () => {
+  const { updater, manager } = fixture();
+  assert.equal(manager.canPlay(), false);
+  await assert.rejects(manager.requireCurrent(), /última versión/);
+  updater.checkForUpdates = async () => updater.emit('update-not-available');
+  await manager.check();
+  assert.equal(manager.canPlay(), true);
+  await manager.requireCurrent();
+  updater.checkForUpdates = async () => updater.emit('update-available', { version: '0.1.6' });
+  await assert.rejects(manager.requireCurrent(), /Actualiza/);
+  assert.equal(manager.canPlay(), false);
+  await manager.download();
+  assert.equal(manager.canPlay(), false);
+  manager.install();
+  assert.equal(manager.canPlay(), false);
+});
+
+test('network and inconclusive checks fail closed, even after a successful check', async () => {
+  const { updater, manager } = fixture();
+  updater.checkForUpdates = async () => updater.emit('update-not-available');
+  await manager.check();
+  updater.checkForUpdates = async () => {};
+  await assert.rejects(manager.requireCurrent(), /Actualiza/);
+  assert.equal(manager.getState().phase, 'error');
+  assert.equal(manager.canPlay(), false);
+  updater.checkForUpdates = async () => { throw new Error('offline'); };
+  await manager.check();
+  assert.equal(manager.canPlay(), false);
+  updater.checkForUpdates = async () => updater.emit('update-not-available');
+  await manager.check();
+  assert.equal(manager.canPlay(), true);
+});
+
+test('portable Windows builds check versions but cannot install in place', async () => {
+  const { updater } = fixture();
+  const manager = createUpdateManager(updater, { canInstall: false });
+  assert.equal((await manager.check()).phase, 'portable-update');
+  assert.equal(manager.canPlay(), false);
+  assert.equal((await manager.download()).phase, 'portable-update');
+  assert.equal(manager.install(), false);
+  const other = new EventEmitter();
+  other.checkForUpdates = async () => other.emit('update-not-available');
+  const current = createUpdateManager(other, { canInstall: false });
+  await current.check();
+  assert.equal(current.canPlay(), true);
+});
+
+test('in-progress check cannot be bypassed by launching early', async () => {
+  const { updater, manager } = fixture();
+  let done;
+  updater.checkForUpdates = () => new Promise(resolve => { done = resolve; });
+  const pending = manager.check();
+  updater.emit('update-not-available');
+  assert.equal(manager.canPlay(), false);
+  await assert.rejects(manager.requireCurrent());
+  done();
+  await pending;
+  assert.equal(manager.canPlay(), true);
 });

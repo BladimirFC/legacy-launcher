@@ -33,8 +33,8 @@ function registerHandlers() {
   trustedHandler('legacy:bootstrap', () => ({ settings: store.get(), version: app.getVersion(), platform: process.platform, warning: store.warning }));
   trustedHandler('legacy:save-settings', (settings) => store.save(settings));
   trustedHandler('legacy:update-state', () => updates.getState());
-  trustedHandler('legacy:update-check', () => updates.check());
-  trustedHandler('legacy:update-download', () => updates.download());
+  trustedHandler('legacy:update-check', () => launching ? updates.getState() : updates.check());
+  trustedHandler('legacy:update-download', () => launching ? updates.getState() : updates.download());
   trustedHandler('legacy:update-releases', () => shell.openExternal(RELEASE_URL));
   trustedHandler('legacy:update-install', async () => {
     if (launching || confirmingUpdate || updates.getState().phase !== 'ready') return false;
@@ -84,9 +84,10 @@ function registerHandlers() {
     return statusPromise;
   });
   trustedHandler('legacy:play', async () => {
-    if (launching || confirmingUpdate || updates.getState().phase === 'installing') throw new Error('Hay otra operación en curso.');
+    if (launching || confirmingUpdate) throw new Error('Hay otra operación en curso.');
     launching = true;
     try {
+      await updates.requireCurrent();
       const contents = mainWindow.webContents;
       return await launchGame(store.get(), {
         onProgress: (progress) => {
@@ -154,18 +155,21 @@ if (!app.requestSingleInstanceLock()) {
     if (configWarning && !store.warning) store.warning = configWarning;
     session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
     session.defaultSession.setPermissionCheckHandler(() => false);
-    // Only NSIS-installed Windows builds can apply in-place launcher updates.
-    const installed = app.isPackaged && process.platform === 'win32' &&
+    // All packaged Windows builds check for updates; only NSIS installs can apply them.
+    const supported = app.isPackaged && process.platform === 'win32';
+    const installed = supported &&
       await fs.access(path.join(path.dirname(process.execPath), '.legacy-installed')).then(() => true, () => false);
-    const updater = installed ? require('electron-updater').autoUpdater : null;
+    const updater = supported ? require('electron-updater').autoUpdater : null;
     updates = createUpdateManager(updater, {
-      enabled: installed,
+      enabled: supported,
+      canInstall: installed,
       onState: (state) => {
         if (mainWindow && !mainWindow.webContents.isDestroyed()) mainWindow.webContents.send('legacy:update-state', state);
       },
     });
     registerHandlers();
     createWindow();
+    void updates.check();
     app.on('activate', () => { if (!mainWindow) createWindow(); });
   }).catch((error) => {
     dialog.showErrorBox('Legacy Launcher', `No se pudo iniciar el launcher: ${error.message}`);

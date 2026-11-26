@@ -24,7 +24,7 @@
   <header class="titlebar">
     <span class="titlebar-name"><img class="mini-mark" src="../assets/icon.png" alt="Logo LG de Legacy" width="28" height="28"> LEGACY LAUNCHER</span>
     <div class="window-actions">
-      <span class="version" id="version">v0.1.4</span>
+      <span class="version" id="version">v0.1.5</span>
       <button id="minimize" class="window-button" aria-label="Minimizar">−</button>
       <button id="close" class="window-button close-window" aria-label="Cerrar">×</button>
     </div>
@@ -45,7 +45,7 @@
       <div id="notification" class="notification" role="status" aria-live="polite" hidden></div>
       <section id="update-panel" class="update-panel" aria-label="Actualizaciones del launcher" hidden>
         <div class="update-copy"><span class="card-kicker">ACTUALIZACIONES DEL LAUNCHER</span><strong id="update-title" role="status" aria-live="polite">Comprobando versión…</strong><span id="update-detail"></span><progress id="update-progress" max="100" value="0" aria-label="Progreso de descarga" hidden></progress></div>
-        <button class="secondary-button" id="update-action" type="button" hidden>Buscar actualizaciones</button>
+        <button class="secondary-button" id="update-action" type="button" hidden></button>
       </section>
       <section id="view-home" class="view">
         <div class="hero">
@@ -54,7 +54,7 @@
           <span class="hero-coordinate">LS / 34°03′ N</span>
           <div class="server-strip"><div class="server-state"><span id="status-dot" class="status-dot"></span><div><span id="server-state">Sin configurar</span><span id="server-address">Añade la dirección de Legacy en Ajustes</span></div></div><div class="server-stats"><div><span>JUGADORES</span><strong id="players">— <small>/ —</small></strong></div><div><span>LATENCIA</span><strong id="ping">— <small>ms</small></strong></div><button class="icon-button" id="refresh-status" title="Actualizar estado" aria-label="Actualizar estado"><svg><use href="#i-refresh"/></svg></button></div></div>
         </div>
-        <div class="launch-panel"><div class="player-field"><label for="nickname">TU NOMBRE EN LA CIUDAD</label><div class="input-wrap"><svg><use href="#i-user"/></svg><input id="nickname" type="text" maxlength="24" autocomplete="off" spellcheck="false" placeholder="Nombre_Apellido" aria-describedby="nickname-help"></div><span id="nickname-help">Se guardará en este equipo.</span></div><div class="launch-action"><button id="play" class="play-button"><span class="play-triangle"></span><span id="play-text">JUGAR A LEGACY</span><svg><use href="#i-arrow"/></svg></button><span id="play-hint">Configura tu juego para comenzar</span></div></div>
+        <div class="launch-panel"><div class="player-field"><label for="nickname">TU NOMBRE EN LA CIUDAD</label><div class="input-wrap"><svg><use href="#i-user"/></svg><input id="nickname" type="text" maxlength="24" autocomplete="off" spellcheck="false" placeholder="Nombre_Apellido" aria-describedby="nickname-help"></div><span id="nickname-help">Se guardará en este equipo.</span></div><div class="launch-action"><button id="play" class="play-button" disabled><span class="play-triangle"></span><span id="play-text">JUGAR A LEGACY</span><svg><use href="#i-arrow"/></svg></button><span id="play-hint">Configura tu juego para comenzar</span></div></div>
         <div class="bottom-grid"><div class="installation-card"><div class="card-icon"><svg><use href="#i-folder"/></svg></div><div class="installation-info"><span class="card-kicker">TU INSTALACIÓN</span><strong id="game-state">Selecciona tu GTA San Andreas</strong><span id="game-detail">Necesitas GTA: SA y el cliente SA-MP.</span></div><button class="text-button" id="home-choose-folder" aria-label="Seleccionar carpeta de GTA San Andreas">Elegir carpeta <span class="diagonal-arrow" aria-hidden="true"></span></button></div><button class="community-card" data-view="community"><span class="card-kicker">NOS VEMOS EN LA CIUDAD</span><strong>Forma parte de Legacy <span class="diagonal-arrow" aria-hidden="true"></span></strong><span>Conecta con nuestra comunidad.</span></button></div>
       </section>
       <section id="view-settings" class="view" hidden>
